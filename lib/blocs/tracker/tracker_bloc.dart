@@ -1,223 +1,185 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../models/tracker_tool.dart';
 import 'tracker_event.dart';
 import 'tracker_state.dart';
 
-const _kPrefix = 'synap_tracker_';
-
 class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
-  Timer? _autoResetTimer;
-  final _notifs = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin? notifications;
 
-  TrackerBloc() : super(TrackerState.initial()) {
-    on<TrackerLoaded>(_onLoad);
-    on<TrackerUsageLogged>(_onUsageLogged);
-    on<TrackerUsageSet>(_onUsageSet);
-    on<TrackerManualReset>(_onManualReset);
-    on<TrackerAutoResetChecked>(_onAutoResetCheck);
+  TrackerBloc({this.notifications}) : super(const TrackerState()) {
+    on<TrackerToolUpdated>(_onToolUpdated);
+    on<TrackerRefreshRequested>(_onRefreshRequested);
     on<TrackerToolToggled>(_onToolToggled);
+    on<TrackerUsageSet>(_onUsageSet);
+    on<TrackerUsageLogged>(_onUsageLogged);
+    on<TrackerManualReset>(_onManualReset);
     on<TrackerToolPinned>(_onToolPinned);
     on<TrackerCustomToolAdded>(_onCustomToolAdded);
-
-    _initNotifs();
-    add(TrackerLoaded());
-
-    _autoResetTimer = Timer.periodic(
-      const Duration(seconds: 60),
-      (_) => add(TrackerAutoResetChecked()),
-    );
   }
 
-  Future<void> _initNotifs() async {
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const ios     = DarwinInitializationSettings();
-    await _notifs.initialize(
-      const InitializationSettings(android: android, iOS: ios),
-    );
-  }
+  // ── Tool updated from extension sync ────────────────────
+  Future<void> _onToolUpdated(
+    TrackerToolUpdated event,
+    Emitter<TrackerState> emit,
+  ) async {
+    final existingTools = List<TrackerTool>.from(state.tools);
+    final idx = existingTools.indexWhere((t) => t.id == event.tool.id);
 
-  Future<void> _sendNotif({
-    required String title,
-    required String body,
-    int id = 0,
-  }) async {
-    const android = AndroidNotificationDetails(
-      'synap_tracker', 'Free Tier Alerts',
-      channelDescription: 'AI tool usage alerts',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    await _notifs.show(
-      id, title, body,
-      const NotificationDetails(android: android),
-    );
-  }
+    final wasExhausted =
+        idx >= 0 ? existingTools[idx].isExhausted : false;
+    final wasLow = idx >= 0 ? existingTools[idx].isLow : false;
 
-  Future<void> _onLoad(TrackerLoaded e, Emitter<TrackerState> emit) async {
-    emit(state.copyWith(status: TrackerStatus.loading));
-    final prefs = await SharedPreferences.getInstance();
-    final tools = TrackerCatalog.all.map((tool) {
-      final raw = prefs.getString('$_kPrefix${tool.id}');
-      if (raw == null) return tool;
-      try {
-        return tool.withSavedData(
-          jsonDecode(raw) as Map<String, dynamic>,
-        );
-      } catch (_) {
-        return tool;
-      }
-    }).toList();
-    emit(state.copyWith(status: TrackerStatus.ready, tools: tools));
-    add(TrackerAutoResetChecked());
-  }
+    // Preserve isPinned and isEnabled from existing tool
+    final updatedTool = idx >= 0
+        ? event.tool.copyWith(
+            isEnabled: existingTools[idx].isEnabled,
+            isPinned: existingTools[idx].isPinned,
+          )
+        : event.tool;
 
-  Future<void> _onUsageLogged(
-      TrackerUsageLogged e, Emitter<TrackerState> emit) async {
-    final tools = _copyTools();
-    final idx   = tools.indexWhere((t) => t.id == e.toolId);
-    if (idx == -1) return;
-
-    final tool       = tools[idx];
-    final wasLow     = tool.isLow;
-    final wasExhausted = tool.isExhausted;
-
-    tools[idx] = tool.copyWith(
-      usedCount:     (tool.usedCount + e.count).clamp(0, tool.freeLimit),
-      lastResetTime: tool.lastResetTime ?? DateTime.now(),
-    );
-
-    await _saveTool(tools[idx]);
-
-    if (!wasLow && tools[idx].isLow) {
-      await _sendNotif(
-        id: idx,
-        title: '⚠️ ${tools[idx].name} running low!',
-        body:  '${tools[idx].remaining} ${tools[idx].unitShort} left. ${tools[idx].tipWhenLow}',
-      );
+    if (idx >= 0) {
+      existingTools[idx] = updatedTool;
+    } else {
+      existingTools.add(updatedTool);
     }
-    if (!wasExhausted && tools[idx].isExhausted) {
-      await _sendNotif(
-        id: idx + 100,
-        title: '🔴 ${tools[idx].name} limit reached!',
-        body:  'Resets in ${tools[idx].countdownLabel}. Switch to ${tools[idx].switchTo}.',
+
+    String? alertId;
+    if (!wasExhausted && updatedTool.isExhausted) {
+      alertId = updatedTool.id;
+      await _notify(
+        title: '🔴 ${updatedTool.name} limit reached!',
+        body: 'Switch to ${state.bestToolNow?.name ?? "another AI"} now.',
+      );
+    } else if (!wasLow && updatedTool.isLow) {
+      alertId = updatedTool.id;
+      await _notify(
+        title: '⚠️ ${updatedTool.name} at 80%',
+        body:
+            '${updatedTool.sessionUsed}/${updatedTool.sessionLimit} messages used',
       );
     }
 
     emit(state.copyWith(
-      tools:       tools,
-      alertToolId: tools[idx].isLow || tools[idx].isExhausted
-          ? tools[idx].id : null,
+      status: TrackerStatus.loaded,
+      tools: existingTools,
+      lastSync: DateTime.now(),
+      isLive: true,
+      alertToolId: alertId,
     ));
   }
 
-  Future<void> _onUsageSet(
-      TrackerUsageSet e, Emitter<TrackerState> emit) async {
-    final tools = _copyTools();
-    final idx   = tools.indexWhere((t) => t.id == e.toolId);
-    if (idx == -1) return;
-    tools[idx] = tools[idx].copyWith(
-      usedCount:     e.count.clamp(0, tools[idx].freeLimit),
-      lastResetTime: tools[idx].lastResetTime ?? DateTime.now(),
-    );
-    await _saveTool(tools[idx]);
+  // ── Refresh requested ─────────────────────────────────────
+  void _onRefreshRequested(
+    TrackerRefreshRequested event,
+    Emitter<TrackerState> emit,
+  ) {
+    emit(state.copyWith(status: TrackerStatus.loading));
+  }
+
+  // ── Toggle tool enabled/disabled ─────────────────────────
+  void _onToolToggled(
+    TrackerToolToggled event,
+    Emitter<TrackerState> emit,
+  ) {
+    final tools = List<TrackerTool>.from(state.tools);
+    final idx = tools.indexWhere((t) => t.id == event.toolId);
+    if (idx < 0) return;
+    tools[idx] = tools[idx].copyWith(isEnabled: !tools[idx].isEnabled);
     emit(state.copyWith(tools: tools));
   }
 
-  Future<void> _onManualReset(
-      TrackerManualReset e, Emitter<TrackerState> emit) async {
-    final tools = _copyTools();
-    final idx   = tools.indexWhere((t) => t.id == e.toolId);
-    if (idx == -1) return;
+  // ── Set usage to specific count ────────────────────────
+  void _onUsageSet(
+    TrackerUsageSet event,
+    Emitter<TrackerState> emit,
+  ) {
+    final tools = List<TrackerTool>.from(state.tools);
+    final idx = tools.indexWhere((t) => t.id == event.toolId);
+    if (idx < 0) return;
     tools[idx] = tools[idx].copyWith(
-      usedCount: 0, lastResetTime: DateTime.now(),
+      sessionUsed: event.count.clamp(0, tools[idx].sessionLimit + 10),
     );
-    await _saveTool(tools[idx]);
-    await _sendNotif(
-      id: idx + 200,
-      title: '✅ ${tools[idx].name} reset!',
-      body:  '${tools[idx].freeLimit} ${tools[idx].unitShort} available again.',
-    );
-    emit(state.copyWith(tools: tools, clearAlert: true));
+    emit(state.copyWith(tools: tools, status: TrackerStatus.loaded));
   }
 
-  Future<void> _onAutoResetCheck(
-      TrackerAutoResetChecked e, Emitter<TrackerState> emit) async {
-    final tools  = _copyTools();
-    bool changed = false;
-    for (int i = 0; i < tools.length; i++) {
-      final t = tools[i];
-      if (t.isTracking && t.shouldAutoReset && t.usedCount > 0) {
-        tools[i] = t.copyWith(usedCount: 0, lastResetTime: DateTime.now());
-        await _saveTool(tools[i]);
-        changed = true;
-        await _sendNotif(
-          id: i + 300,
-          title: '🔄 ${tools[i].name} reset!',
-          body:  '${tools[i].freeLimit} ${tools[i].unitShort} are back. Go create!',
-        );
-      }
-    }
-    if (changed) emit(state.copyWith(tools: tools, clearAlert: true));
-  }
-
-  Future<void> _onToolToggled(
-      TrackerToolToggled e, Emitter<TrackerState> emit) async {
-    final tools = _copyTools();
-    final idx   = tools.indexWhere((t) => t.id == e.toolId);
-    if (idx == -1) return;
-    tools[idx] = tools[idx].copyWith(isTracking: !tools[idx].isTracking);
-    if (tools[idx].isTracking && tools[idx].lastResetTime == null) {
-      tools[idx] = tools[idx].copyWith(lastResetTime: DateTime.now());
-    }
-    await _saveTool(tools[idx]);
+  // ── Log usage increment ───────────────────────────────────
+  void _onUsageLogged(
+    TrackerUsageLogged event,
+    Emitter<TrackerState> emit,
+  ) {
+    final tools = List<TrackerTool>.from(state.tools);
+    final idx = tools.indexWhere((t) => t.id == event.toolId);
+    if (idx < 0) return;
+    tools[idx] = tools[idx].copyWith(
+      sessionUsed:
+          (tools[idx].sessionUsed + event.count).clamp(0, tools[idx].sessionLimit + 10),
+    );
     emit(state.copyWith(tools: tools));
   }
 
-  Future<void> _onToolPinned(
-      TrackerToolPinned e, Emitter<TrackerState> emit) async {
-    final tools = _copyTools();
-    final idx   = tools.indexWhere((t) => t.id == e.toolId);
-    if (idx == -1) return;
+  // ── Manual reset ──────────────────────────────────────────
+  void _onManualReset(
+    TrackerManualReset event,
+    Emitter<TrackerState> emit,
+  ) {
+    final tools = List<TrackerTool>.from(state.tools);
+    final idx = tools.indexWhere((t) => t.id == event.toolId);
+    if (idx < 0) return;
+    tools[idx] = tools[idx].copyWith(sessionUsed: 0, resetAt: null);
+    emit(state.copyWith(tools: tools, alertToolId: null));
+  }
+
+  // ── Pin / Unpin tool ──────────────────────────────────────
+  void _onToolPinned(
+    TrackerToolPinned event,
+    Emitter<TrackerState> emit,
+  ) {
+    final tools = List<TrackerTool>.from(state.tools);
+    final idx = tools.indexWhere((t) => t.id == event.toolId);
+    if (idx < 0) return;
     tools[idx] = tools[idx].copyWith(isPinned: !tools[idx].isPinned);
-    await _saveTool(tools[idx]);
     emit(state.copyWith(tools: tools));
   }
 
-  Future<void> _onCustomToolAdded(
-      TrackerCustomToolAdded e, Emitter<TrackerState> emit) async {
-    final custom = TrackerTool(
-      id:           'custom_${DateTime.now().millisecondsSinceEpoch}',
-      name:         e.name,
-      emoji:        e.emoji,
-      freeLimit:    e.freeLimit,
-      unit:         UsageUnit.credits,
-      resetPeriod:  ResetPeriod.daily,
-      tipWhenLow:   'You are running low on ${e.name}',
-      switchTo:     'another tool',
-      colorHex:     0xFF6EE7F7,
-      isTracking:   true,
-      lastResetTime: DateTime.now(),
-    );
-    final tools = [..._copyTools(), custom];
-    await _saveTool(custom);
+  // ── Add custom tool ───────────────────────────────────────
+  void _onCustomToolAdded(
+    TrackerCustomToolAdded event,
+    Emitter<TrackerState> emit,
+  ) {
+    final tools = List<TrackerTool>.from(state.tools);
+    final id = event.name.toLowerCase().replaceAll(' ', '_');
+    if (tools.any((t) => t.id == id)) return;
+
+    tools.add(TrackerTool(
+      id: id,
+      name: event.name,
+      sessionLimit: event.freeLimit > 0 ? event.freeLimit : event.limit,
+      isEnabled: true,
+    ));
     emit(state.copyWith(tools: tools));
   }
 
-  List<TrackerTool> _copyTools() =>
-      state.tools.map((t) => t.copyWith()).toList();
-
-  Future<void> _saveTool(TrackerTool t) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('$_kPrefix${t.id}', jsonEncode(t.toJson()));
-  }
-
-  @override
-  Future<void> close() {
-    _autoResetTimer?.cancel();
-    return super.close();
+  // ── Notification helper ───────────────────────────────────
+  Future<void> _notify({
+    required String title,
+    required String body,
+  }) async {
+    try {
+      await notifications?.show(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'synap_tracker',
+            'Synap Tracker',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+      );
+    } catch (_) {}
   }
 }

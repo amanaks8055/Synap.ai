@@ -1,12 +1,19 @@
-// content/gemini.js
-(function () {
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button.send-button,button[aria-label*="Send"]');
-        if (btn) setTimeout(() => chrome.runtime.sendMessage({ action: 'usage', toolId: 'gemini', count: 1 }), 800);
-    }, true);
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && e.target.closest('rich-textarea,[contenteditable]'))
-            setTimeout(() => chrome.runtime.sendMessage({ action: 'usage', toolId: 'gemini', count: 1 }), 800);
-    }, true);
-    console.log('[Synap] Gemini tracking ✓');
-})();
+// ============================================================
+// SYNAP — Gemini Content Script
+// ============================================================
+
+console.log('[Synap] Gemini content script loaded ✅');
+
+const origFetch = window.fetch.bind(window);
+window.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : (input?.url || '');
+
+    if (url.includes('StreamGenerateContent') || url.includes('batchEmbedContents') || url.includes('GenerateContent')) {
+        console.log('[Synap] Gemini message detected!');
+        chrome.runtime.sendMessage({ action: 'usage', provider: 'gemini' });
+    }
+
+    return origFetch(input, init);
+};
+
+console.log('[Synap] Gemini sensor active ✅');

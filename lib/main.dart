@@ -44,7 +44,7 @@ class SynapApp extends StatelessWidget {
         title: 'Synap',
         debugShowCheckedModeBanner: false,
         theme: SynapTheme.darkTheme,
-        initialRoute: '/auth',
+        initialRoute: '/',
         onGenerateRoute: _onGenerateRoute,
       ),
     );
@@ -54,6 +54,11 @@ class SynapApp extends StatelessWidget {
   Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const _AppEntry(),
+        );
+
       case '/auth':
         return MaterialPageRoute(
           settings: settings,
@@ -139,8 +144,11 @@ class _AppEntryState extends State<_AppEntry> {
   @override
   void initState() {
     super.initState();
-    _syncService = ExtensionSyncService(context.read<TrackerBloc>());
-    _syncService.start();
+    _syncService = ExtensionSyncService(trackerBloc: context.read<TrackerBloc>());
+    
+    // TESTING: Same ID as Extension for instant sync
+    const testUserId = 'synap_test_user';
+    _syncService.start(testUserId);
   }
 
   @override

@@ -1,78 +1,55 @@
-// lib/services/extension_sync_service.dart
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../blocs/tracker/tracker_bloc.dart';
 import '../blocs/tracker/tracker_event.dart';
+import '../models/tracker_tool.dart';
 
 class ExtensionSyncService {
   final TrackerBloc trackerBloc;
-  Timer? _timer;
-  DateTime? _lastSync;
-  bool _running = false;
+  StreamSubscription? _subscription;
+  Timer? _fallbackTimer;
 
-  ExtensionSyncService(this.trackerBloc);
+  ExtensionSyncService({required this.trackerBloc});
 
-  void start() {
-    if (_running) return;
-    _running = true;
-    _sync();
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _sync());
+  final _supabase = Supabase.instance.client;
+
+  void start(String userId) {
+    _startRealtimeStream(userId);
+    _fallbackTimer = Timer.periodic(const Duration(seconds: 15), (_) => _fetchOnce(userId));
+    _fetchOnce(userId);
   }
 
-  void stop() {
-    _timer?.cancel();
-    _running = false;
+  void _startRealtimeStream(String userId) {
+    _subscription?.cancel();
+    _subscription = _supabase
+        .from('extension_sync')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .listen((rows) {
+      if (rows.isEmpty) return;
+      _processPayload(rows.first['payload']);
+    }, onError: (e) => print('[Synap] Realtime error: $e'));
   }
 
-  Future<void> _sync() async {
+  Future<void> _fetchOnce(String userId) async {
     try {
-      final uid = await _getUid();
-      final res = await Supabase.instance.client
-          .from('extension_sync')
-          .select('payload, updated_at')
-          .eq('user_id', uid)
-          .maybeSingle();
+      final res = await _supabase.from('extension_sync').select().eq('user_id', userId).maybeSingle();
+      if (res != null) _processPayload(res['payload']);
+    } catch (e) { print('[Synap] Fetch error: $e'); }
+  }
 
-      if (res == null) {
-        return;
+  void _processPayload(dynamic payload) {
+    if (payload == null) return;
+    final Map<String, dynamic> data = Map<String, dynamic>.from(payload);
+    for (final provider in ['claude', 'chatgpt', 'gemini', 'perplexity']) {
+      if (data.containsKey(provider) && data[provider] is Map) {
+        trackerBloc.add(TrackerToolUpdated(TrackerTool.fromPayload(provider, Map<String, dynamic>.from(data[provider]))));
       }
-
-      // Naya data hai to hi update karo
-      final updatedAt = DateTime.tryParse(
-          res['updated_at'] as String? ?? '');
-      if (updatedAt != null &&
-          _lastSync != null &&
-          !updatedAt.isAfter(_lastSync!)) {
-        return;
-      }
-
-      _lastSync = updatedAt ?? DateTime.now();
-
-      final payload = res['payload'] as Map<String, dynamic>;
-      payload.forEach((toolId, data) {
-        if (data is Map && data['used'] != null) {
-          trackerBloc.add(
-            TrackerUsageSet(toolId, (data['used'] as num).toInt()));
-        }
-      });
-
-      debugPrint('[Sync] Extension data updated ✓');
-    } catch (e) {
-      // Silent fail — extension install nahi hai toh chalega
-      debugPrint('[Sync] Skipped: $e');
     }
   }
 
-  Future<String> _getUid() async {
-    final prefs = await SharedPreferences.getInstance();
-    var uid = prefs.getString('synap_ext_uid');
-    if (uid != null) return uid;
-    uid = 'ext_${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
-    await prefs.setString('synap_ext_uid', uid);
-    return uid;
+  void stop() {
+    _subscription?.cancel();
+    _fallbackTimer?.cancel();
   }
-
-  Future<void> forceSync() => _sync();
 }

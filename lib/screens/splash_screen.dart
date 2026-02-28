@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen>
     // ── Rain: runs forever (repaints via listener) ──────────
     _rainController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 16), // ~60fps
+      duration: const Duration(seconds: 1), // Standard duration for continuous ticker
     )..repeat();
 
     // ── Brand: fades in after 400ms ─────────────────────────

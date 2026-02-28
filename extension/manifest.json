@@ -1,37 +1,53 @@
 {
   "manifest_version": 3,
-  "name": "Synap — Free Tier Tracker",
+  "name": "Synap Sensor",
   "version": "1.0.0",
-  "description": "Automatically tracks ChatGPT, Claude, Gemini usage. Auto-syncs with Synap app.",
-  "permissions": ["storage", "notifications", "alarms"],
+  "description": "Tracks your AI usage across ChatGPT, Claude, Gemini",
+  "permissions": [
+    "cookies",
+    "storage",
+    "alarms",
+    "tabs"
+  ],
   "host_permissions": [
-    "https://chat.openai.com/*",
-    "https://chatgpt.com/*",
     "https://claude.ai/*",
+    "https://chatgpt.com/*",
     "https://gemini.google.com/*",
     "https://www.perplexity.ai/*"
   ],
-  "background": { "service_worker": "background.js" },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
-      "js": ["content/chatgpt.js"],
-      "run_at": "document_end"
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "content/chatgpt.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     },
     {
-      "matches": ["https://claude.ai/*"],
-      "js": ["content/claude.js"],
-      "run_at": "document_end"
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "content/claude.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     },
     {
-      "matches": ["https://gemini.google.com/*"],
-      "js": ["content/gemini.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://www.perplexity.ai/*"],
-      "js": ["content/perplexity.js"],
-      "run_at": "document_end"
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "content/gemini.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
   "action": {

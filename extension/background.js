@@ -1,174 +1,153 @@
-// background.js — Synap Extension (Final version with Supabase sync)
-// ══════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
 
-// ⚠️  REPLACE THESE with your actual Supabase values:
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_KEY = 'YOUR_ANON_KEY';
-
-const TOOLS = {
-  chatgpt_gpt4o: { name:'ChatGPT GPT-4o', emoji:'🤖', limit:40,  resetHours:3,  switchTo:'Claude'     },
-  claude:        { name:'Claude',          emoji:'✦',  limit:40,  resetHours:24, switchTo:'ChatGPT'    },
-  gemini:        { name:'Gemini Pro',      emoji:'♊',  limit:60,  resetHours:24, switchTo:'Perplexity' },
-  perplexity:    { name:'Perplexity Pro',  emoji:'🔍', limit:5,   resetHours:24, switchTo:'Gemini'     },
-};
-
-// ── Messages from content scripts ────────────────────────────
-chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
-  if (msg.action === 'usage')    { handleUsage(msg.toolId, msg.count||1).then(()=>sendResponse({ok:true})); return true; }
-  if (msg.action === 'getAll')   { getAllData().then(sendResponse); return true; }
-  if (msg.action === 'reset')    { resetTool(msg.toolId).then(sendResponse); return true; }
-  if (msg.action === 'setExact') { setExact(msg.toolId, msg.count).then(sendResponse); return true; }
-});
-
-// ── Core: handle usage event ──────────────────────────────────
-async function handleUsage(toolId, count) {
-  const tool = TOOLS[toolId];
-  if (!tool) return;
-
-  const now     = Date.now();
-  const data    = await getData(toolId);
-  const resetMs = tool.resetHours * 3600000;
-
-  // Auto-reset if period expired
-  if (data.lastReset && (now - data.lastReset) >= resetMs) {
-    data.used      = 0;
-    data.lastReset = now;
-    notify(`🔄 ${tool.name} reset!`, `${tool.limit} free uses back!`, toolId);
-  }
-
-  const wasLow   = (data.used / tool.limit) >= 0.8;
-  const wasEmpty = data.used >= tool.limit;
-
-  data.used      = Math.min((data.used||0) + count, tool.limit);
-  data.lastReset = data.lastReset || now;
-  data.lastUsed  = now;
-
-  await save(toolId, data);
-
-  // Alerts
-  const pct = data.used / tool.limit;
-  if (!wasLow   && pct>=0.8 && pct<1) notify(`⚠️ ${tool.name} running low!`, `${tool.limit-data.used} left — switch to ${tool.switchTo}`, toolId);
-  if (!wasEmpty && pct>=1)            notify(`🔴 ${tool.name} limit reached!`, `Resets in ${timeLabel(data.lastReset, resetMs)} — use ${tool.switchTo}`, toolId);
-
-  // Badge
-  const ex = await countExhausted();
-  chrome.action.setBadgeText({ text: ex>0 ? String(ex) : '' });
-  chrome.action.setBadgeBackgroundColor({ color: '#FF4F6A' });
-
-  // ── Sync to Supabase → Flutter app reads this ────────────
-  await syncToSupabase();
+// ── Storage ──────────────────────────────────────────────────
+function getData() {
+  return new Promise(r => chrome.storage.local.get(['usage', 'userId'], r));
+}
+function setData(obj) {
+  return new Promise(r => chrome.storage.local.set(obj, r));
+}
+async function getUserId() {
+  const { userId } = await getData();
+  if (userId) return userId;
+  const id = 'synap_' + Math.random().toString(36).substr(2, 12);
+  await setData({ userId: id });
+  return id;
 }
 
-// ── Supabase sync ─────────────────────────────────────────────
-async function syncToSupabase() {
+// ── Supabase Sync ────────────────────────────────────────────
+async function syncToSupabase(usage) {
+  const userId = await getUserId();
   try {
-    const all    = await getAllData();
-    const userId = await getUserId();
+    // Pehle check karo row exist karti hai ya nahi
+    const checkRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/extension_sync?user_id=eq.${userId}`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+    const existing = await checkRes.json();
 
-    await fetch(`${SUPABASE_URL}/rest/v1/extension_sync`, {
-      method: 'POST',
+    // Exist kare toh PATCH (update), warna POST (insert)
+    const method = existing.length > 0 ? 'PATCH' : 'POST';
+    const url = existing.length > 0
+      ? `${SUPABASE_URL}/rest/v1/extension_sync?user_id=eq.${userId}`
+      : `${SUPABASE_URL}/rest/v1/extension_sync`;
+
+    const res = await fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Prefer': 'resolution=merge-duplicates',
+        'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        user_id:    userId,
-        payload:    all,
-        updated_at: new Date().toISOString(),
-      }),
+        user_id: userId,
+        payload: usage,
+        updated_at: new Date().toISOString()
+      })
     });
+
+    if (res.ok) {
+      console.log('[Synap] ✅ Synced to Supabase');
+    } else {
+      console.error('[Synap] Supabase error:', await res.text());
+    }
   } catch (e) {
-    console.log('[Synap] Sync skipped:', e.message);
+    console.error('[Synap] Supabase sync failed:', e.message);
   }
 }
 
-async function getUserId() {
-  const r = await chrome.storage.local.get('synap_uid');
-  if (r.synap_uid) return r.synap_uid;
-  const uid = 'ext_' + Math.random().toString(36).slice(2, 10);
-  await chrome.storage.local.set({ synap_uid: uid });
-  return uid;
-}
+// ── Message Handler ──────────────────────────────────────────
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
-// ── Helpers ───────────────────────────────────────────────────
-async function getData(id) {
-  const r = await chrome.storage.local.get(`s_${id}`);
-  return r[`s_${id}`] || { used:0, lastReset:null, lastUsed:null };
-}
-
-async function save(id, data) {
-  await chrome.storage.local.set({ [`s_${id}`]: data });
-}
-
-async function getAllData() {
-  const result = {};
-  const now    = Date.now();
-  for (const [id, tool] of Object.entries(TOOLS)) {
-    const d       = await getData(id);
-    const resetMs = tool.resetHours * 3600000;
-    const diff    = d.lastReset ? Math.max(0, (d.lastReset + resetMs) - now) : 0;
-    const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
-    result[id] = {
-      ...tool,
-      used:      d.used || 0,
-      remaining: Math.max(0, tool.limit - (d.used||0)),
-      pct:       Math.min((d.used||0) / tool.limit, 1),
-      isLow:     (d.used||0) / tool.limit >= 0.8,
-      isEmpty:   (d.used||0) >= tool.limit,
-      resetIn:   diff>0 ? (h>0 ? `${h}h ${m}m` : `${m}m`) : 'Ready',
-      lastUsed:  d.lastUsed,
-    };
+  // Content script ne real usage data bheja (API call se)
+  if (msg.action === 'realUsageData') {
+    const provider = msg.provider;
+    const data = msg.data;
+    getData().then(async ({ usage = {} }) => {
+      usage[provider] = { ...data, lastFetched: Date.now() };
+      usage.lastUpdated = Date.now();
+      await setData({ usage });
+      await syncToSupabase(usage);
+      console.log(`[Synap] ${provider} real usage saved:`, data);
+    });
+    sendResponse({ ok: true });
+    return true;
   }
-  return result;
-}
 
-async function resetTool(id) {
-  await save(id, { used:0, lastReset:Date.now(), lastUsed:null });
-  await syncToSupabase();
-  return { ok:true };
-}
-
-async function setExact(id, count) {
-  const d = await getData(id);
-  d.used  = Math.min(count, TOOLS[id]?.limit||999);
-  await save(id, d);
-  await syncToSupabase();
-  return { ok:true };
-}
-
-async function countExhausted() {
-  let n=0;
-  for (const id of Object.keys(TOOLS)) {
-    const d = await getData(id);
-    if ((d.used||0) >= TOOLS[id].limit) n++;
+  // Simple count increment (fallback)
+  if (msg.action === 'usage') {
+    const provider = msg.provider;
+    getData().then(async ({ usage = {} }) => {
+      if (!usage[provider]) {
+        usage[provider] = { provider, sessionUsed: 0, sessionLimit: getDefaultLimit(provider) };
+      }
+      usage[provider].sessionUsed = (usage[provider].sessionUsed || 0) + 1;
+      usage[provider].lastActivity = Date.now();
+      usage.lastUpdated = Date.now();
+      await setData({ usage });
+      await syncToSupabase(usage);
+      console.log(`[Synap] ${provider} count:`, usage[provider].sessionUsed);
+    });
+    sendResponse({ ok: true });
+    return true;
   }
-  return n;
+
+  // Popup/app se data maanga
+  if (msg.action === 'getAll') {
+    getData().then(({ usage = {}, userId }) => {
+      sendResponse({ usage, userId });
+    });
+    return true;
+  }
+
+  // Force reset
+  if (msg.action === 'reset') {
+    getData().then(async ({ usage = {} }) => {
+      if (msg.provider && usage[msg.provider]) {
+        usage[msg.provider].sessionUsed = 0;
+      } else {
+        // Reset all
+        Object.keys(usage).forEach(k => {
+          if (usage[k]?.sessionUsed !== undefined) usage[k].sessionUsed = 0;
+        });
+      }
+      await setData({ usage });
+      await syncToSupabase(usage);
+      sendResponse({ ok: true });
+    });
+    return true;
+  }
+
+  return true;
+});
+
+function getDefaultLimit(provider) {
+  return { claude: 10, chatgpt: 40, gemini: 100, perplexity: 50 }[provider] || 40;
 }
 
-function timeLabel(lastReset, resetMs) {
-  const diff = Math.max(0, (lastReset+resetMs) - Date.now());
-  const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000);
-  return h>0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-function notify(title, message, toolId) {
-  chrome.notifications.create(`synap_${toolId}_${Date.now()}`, {
-    type:'basic', iconUrl:'icons/icon48.png', title, message, priority:2,
-  });
-}
-
-// ── Auto-reset every 5 min ────────────────────────────────────
-chrome.alarms.create('check', { periodInMinutes:5 });
-chrome.alarms.onAlarm.addListener(async ({name}) => {
-  if (name !== 'check') return;
-  for (const [id, tool] of Object.entries(TOOLS)) {
-    const d = await getData(id);
-    const resetMs = tool.resetHours * 3600000;
-    if (d.lastReset && (Date.now()-d.lastReset) >= resetMs && (d.used||0)>0) {
-      await resetTool(id);
-      notify(`🔄 ${tool.emoji} ${tool.name} reset!`, `${tool.limit} uses available again.`, id);
+// Periodic sync every 3 minutes
+chrome.alarms.create('sync', { periodInMinutes: 3 });
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== 'sync') return;
+  // Ask content scripts to fetch real usage
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (!tab.url) continue;
+    if (tab.url.includes('claude.ai')) {
+      chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => { });
+    }
+    if (tab.url.includes('chatgpt.com')) {
+      chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => { });
     }
   }
 });
+
+chrome.runtime.onInstalled.addListener(() => console.log('[Synap] Installed ✅'));
+console.log('[Synap] Background loaded ✅');
