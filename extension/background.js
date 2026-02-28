@@ -140,10 +140,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   const tabs = await chrome.tabs.query({});
   for (const tab of tabs) {
     if (!tab.url) continue;
-    if (tab.url.includes('claude.ai')) {
+    let hostname = '';
+    try { hostname = new URL(tab.url).hostname; } catch (_) { continue; }
+    if (hostname === 'claude.ai' || hostname.endsWith('.claude.ai')) {
       chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => { });
     }
-    if (tab.url.includes('chatgpt.com')) {
+    if (hostname === 'chatgpt.com' || hostname.endsWith('.chatgpt.com')) {
       chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => { });
     }
   }

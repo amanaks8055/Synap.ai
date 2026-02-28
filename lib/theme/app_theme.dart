@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ─── POE-EXACT COLOR PALETTE ──────────────────────
+// ─── SYNAP COLOR PALETTE ─────────────────────────
 class SynapColors {
-  // Backgrounds (POE exact)
+  // Backgrounds
   static const Color bgPrimary = Color(0xFF181818);
   static const Color bgSecondary = Color(0xFF222222);
   static const Color bgTertiary = Color(0xFF2A2A2A);
   static const Color bgCard = Color(0xFF262626);
 
-  // Accent (POE purple)
-  static const Color accent = Color(0xFF7B68EE);
+  // Accent (Synap Cyan — brand color)
+  static const Color accent = Color(0xFF00C8E8);
   static const Color accentGreen = Color(0xFF22C55E);
   static const Color accentRed = Color(0xFFEF4444);
   static const Color accentOrange = Color(0xFFF97316);
@@ -38,13 +38,11 @@ class SynapTheme {
         surface: SynapColors.bgSecondary,
         error: SynapColors.accentRed,
       ),
-      textTheme: GoogleFonts.interTextTheme(
-        const TextTheme(
-          headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: SynapColors.textPrimary),
-          bodyLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: SynapColors.textPrimary),
-          bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: SynapColors.textPrimary),
-          bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: SynapColors.textSecondary),
-        ),
+      textTheme: TextTheme(
+        headlineLarge: GoogleFonts.syne(fontSize: 22, fontWeight: FontWeight.w700, color: SynapColors.textPrimary),
+        bodyLarge: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w400, color: SynapColors.textPrimary),
+        bodyMedium: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w500, color: SynapColors.textPrimary),
+        bodySmall: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w400, color: SynapColors.textSecondary),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: SynapColors.bgPrimary,

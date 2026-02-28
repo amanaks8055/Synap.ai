@@ -26,7 +26,7 @@ class ExtensionSyncService {
         .stream(primaryKey: ['id'])
         .eq('user_id', userId)
         .listen((rows) {
-      if (rows.isEmpty) return;
+      if (rows.isEmpty) { return; }
       _processPayload(rows.first['payload']);
     }, onError: (e) => print('[Synap] Realtime error: $e'));
   }
@@ -34,12 +34,12 @@ class ExtensionSyncService {
   Future<void> _fetchOnce(String userId) async {
     try {
       final res = await _supabase.from('extension_sync').select().eq('user_id', userId).maybeSingle();
-      if (res != null) _processPayload(res['payload']);
+      if (res != null) { _processPayload(res['payload']); }
     } catch (e) { print('[Synap] Fetch error: $e'); }
   }
 
   void _processPayload(dynamic payload) {
-    if (payload == null) return;
+    if (payload == null) { return; }
     final Map<String, dynamic> data = Map<String, dynamic>.from(payload);
     for (final provider in ['claude', 'chatgpt', 'gemini', 'perplexity']) {
       if (data.containsKey(provider) && data[provider] is Map) {
