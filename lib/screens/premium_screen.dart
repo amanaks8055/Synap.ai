@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/premium/premium_bloc.dart';
+import '../widgets/moving_border_button.dart';
 
 class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
@@ -247,7 +248,7 @@ class _PremiumScreenState extends State<PremiumScreen>
               gradient: const LinearGradient(colors: [
                 Color(0xFF0D2E1A), Color(0xFF0D1A2E),
               ]),
-              border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.4)),
+              border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.4)),
             ),
             child: const Text('✓ Active', style: TextStyle(
               fontFamily: 'DM Sans', fontSize: 12, fontWeight: FontWeight.w600,
@@ -278,7 +279,7 @@ class _PremiumScreenState extends State<PremiumScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: [BoxShadow(
-                  color: const Color(0xFF6EE7F7).withValues(alpha:
+                  color: const Color(0xFF6EE7F7).withOpacity(
                     0.12 + 0.18 * sin(_shimmerCtrl.value * 2 * pi),
                   ),
                   blurRadius: 35, spreadRadius: 6,
@@ -288,11 +289,11 @@ class _PremiumScreenState extends State<PremiumScreen>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(colors: [
-                    const Color(0xFF6EE7F7).withValues(alpha: 0.12),
+                    const Color(0xFF6EE7F7).withOpacity(0.12),
                     const Color(0xFF040608),
                   ]),
                   border: Border.all(
-                    color: const Color(0xFF6EE7F7).withValues(alpha: 0.2),
+                    color: const Color(0xFF6EE7F7).withOpacity(0.2),
                   ),
                 ),
                 child: const Center(
@@ -309,11 +310,12 @@ class _PremiumScreenState extends State<PremiumScreen>
           )),
           const SizedBox(height: 8),
           Text(
-            'Unlock every AI tool. Zero ads.\nCancel anytime.',
+            'Master AI for the price of a daily chai.\nJoin 25,000+ AI builders in India.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'DM Sans', fontSize: 14,
-              color: Colors.white.withValues(alpha: 0.4), height: 1.6,
+              color: Colors.white.withOpacity(0.55), height: 1.6,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ]),
@@ -344,7 +346,7 @@ class _PremiumScreenState extends State<PremiumScreen>
           ),
           _TierTab(
             label: '💼 Professional',
-            sublabel: 'From ₹149',
+            sublabel: 'From ₹59',
             isActive: _selectedTier == PlanTier.professional,
             activeColor: const Color(0xFFA78BFA),
             onTap: () => _switchTier(PlanTier.professional),
@@ -396,17 +398,16 @@ class _PremiumScreenState extends State<PremiumScreen>
   // ─────────────────────────────────────────────────────────
   Widget _buildFeatures() {
     final studentFeatures = [
-      ('⚡', 'Access 500+ AI tools'),
-      ('🚫', 'Ad-free experience'),
-      ('🔖', 'Save unlimited favorites'),
-      ('🔍', 'Advanced search & filters'),
+      ('✨', '100% Ad-Free discovery'),
+      ('🔐', 'Unlock Student-only AI guides'),
+      ('🔖', 'Unlimited Bookmarks for research'),
+      ('🚀', 'Early access to new tools'),
     ];
     final proFeatures = [
-      ('⚡', 'Everything in Student'),
-      ('🎯', 'Personalized AI recommendations'),
-      ('🆕', 'Early access to new tools'),
-      ('📊', 'Tool comparison & analytics'),
-      ('⭐', 'Priority support'),
+      ('💎', 'Everything in Student tier'),
+      ('🔥', 'Founders Vault Access'),
+      ('📊', 'ROI analytics for AI tools'),
+      ('📞', 'Priority WhatsApp Support'),
     ];
 
     final features = _selectedTier == PlanTier.student
@@ -474,59 +475,46 @@ class _PremiumScreenState extends State<PremiumScreen>
 
     return ScaleTransition(
       scale: _ctaScale,
-      child: GestureDetector(
+      child: SynapMovingBorderButton(
         onTap: (state.isPurchasing || state.isLoading || !state.billingAvailable)
             ? null
             : () => ctx.read<PremiumBloc>().add(
                 PremiumPurchaseStarted(_selectedPlanId)),
-        child: AnimatedBuilder(
-          animation: _shimmerCtrl,
-          builder: (_, __) {
-            final glowOpacity = 0.2 + 0.15 * sin(_shimmerCtrl.value * 2 * pi);
-            return Container(
-              width: double.infinity,
-              height: 58,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                color: accentColor,
-                boxShadow: [BoxShadow(
-                  color: accentColor.withValues(alpha: glowOpacity),
-                  blurRadius: 25, offset: const Offset(0, 8),
-                )],
-              ),
-              child: Center(child: state.isPurchasing
-                  ? const SizedBox(
-                      width: 22, height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Color(0xFF040608),
-                      ),
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          state.isPremium ? 'Already Active ✓' : 'Get Started — $displayPrice',
-                          style: const TextStyle(
-                            fontFamily: 'Syne', fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF040608),
-                          ),
-                        ),
-                        Text(
-                          'for ${plan.period}',
-                          style: TextStyle(
-                            fontFamily: 'DM Sans', fontSize: 11,
-                            color: const Color(0xFF040608).withValues(alpha: 0.6),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+        borderRadius: 18,
+        height: 60,
+        backgroundColor: accentColor,
+        glowColor: Colors.white,
+        duration: const Duration(seconds: 2),
+        padding: EdgeInsets.zero,
+        child: state.isPurchasing
+            ? const SizedBox(
+                width: 22, height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Color(0xFF040608),
+                ),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    state.isPremium ? 'Already Active ✓' : 'Get Started — $displayPrice',
+                    style: const TextStyle(
+                      fontFamily: 'Syne', fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF040608),
                     ),
+                  ),
+                  Text(
+                    'for ${plan.period}',
+                    style: TextStyle(
+                      fontFamily: 'DM Sans', fontSize: 11,
+                      color: const Color(0xFF040608).withOpacity(0.6),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
       ),
     );
   }
@@ -556,14 +544,14 @@ class _PremiumScreenState extends State<PremiumScreen>
       textAlign: TextAlign.center,
       style: TextStyle(
         fontFamily: 'DM Sans', fontSize: 10,
-        color: Colors.white.withValues(alpha: 0.2), height: 1.5,
+        color: Colors.white.withOpacity(0.2), height: 1.5,
       ),
     );
   }
 
   Widget _buildLoadingOverlay(PremiumState state) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.6),
+      color: Colors.black.withOpacity(0.6),
       child: Center(child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -607,9 +595,9 @@ class _TierTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: isActive ? activeColor.withValues(alpha: 0.12) : Colors.transparent,
+          color: isActive ? activeColor.withOpacity(0.12) : Colors.transparent,
           border: isActive
-              ? Border.all(color: activeColor.withValues(alpha: 0.4))
+              ? Border.all(color: activeColor.withOpacity(0.4))
               : Border.all(color: Colors.transparent),
         ),
         child: Column(children: [
@@ -621,7 +609,7 @@ class _TierTab extends StatelessWidget {
           Text(sublabel, style: TextStyle(
             fontFamily: 'DM Sans', fontSize: 11,
             color: isActive
-                ? activeColor.withValues(alpha: 0.7)
+                ? activeColor.withOpacity(0.7)
                 : const Color(0xFF2D3748),
           )),
         ]),
@@ -668,7 +656,7 @@ class _PlanCardState extends State<_PlanCard> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: widget.isSelected
-              ? widget.accentColor.withValues(alpha: 0.07)
+              ? widget.accentColor.withOpacity(0.07)
               : const Color(0xFF0A0E14),
           border: Border.all(
             color: widget.isSelected
@@ -677,7 +665,7 @@ class _PlanCardState extends State<_PlanCard> {
             width: widget.isSelected ? 1.5 : 1,
           ),
           boxShadow: widget.isSelected ? [BoxShadow(
-            color: widget.accentColor.withValues(alpha: 0.1), blurRadius: 20,
+            color: widget.accentColor.withOpacity(0.1), blurRadius: 20,
           )] : null,
         ),
         child: Row(children: [
@@ -754,8 +742,8 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        color: color.withValues(alpha: 0.1),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        color: color.withOpacity(0.1),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Text(text, style: TextStyle(
         fontFamily: 'DM Sans', fontSize: 9,
@@ -807,7 +795,7 @@ class _RainPainter extends CustomPainter {
       tp.text = TextSpan(
         text: ch,
         style: TextStyle(
-          fontSize: 13, color: col.color.withValues(alpha: col.alpha),
+          fontSize: 13, color: col.color.withOpacity(col.alpha),
           fontFamily: 'monospace',
         ),
       );

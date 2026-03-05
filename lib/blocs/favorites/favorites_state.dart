@@ -4,7 +4,7 @@ class FavoritesState {
 
   const FavoritesState({
     this.favoriteIds = const [],
-    this.maxFree = 5,
+    this.maxFree = 10,
   });
 
   bool isFavorite(String id) => favoriteIds.contains(id);
@@ -12,7 +12,7 @@ class FavoritesState {
 
   FavoritesState copyWith({List<String>? favoriteIds}) {
     return FavoritesState(
-      favoriteIds: favoriteIds ?? this.favoriteIds,
+      favoriteIds: List<String>.from(favoriteIds ?? this.favoriteIds),
       maxFree: maxFree,
     );
   }

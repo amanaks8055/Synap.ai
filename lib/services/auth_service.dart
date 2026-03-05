@@ -7,12 +7,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static final _sb = Supabase.instance.client;
 
+  // ── GOOGLE CLIENT IDs ──────────────────────────
+  static const webClientId =
+      '832924787145-d68ebhsl53u3sr7fjhtbtm9ejqbp8o0o.apps.googleusercontent.com';
+  static const iosClientId =
+      '832924787145-iul36b14gm1mt536grcpmtle448f0rka.apps.googleusercontent.com';
+
+  static final _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb
+        ? webClientId
+        : (defaultTargetPlatform == TargetPlatform.iOS ? iosClientId : null),
+    serverClientId: kIsWeb ? null : webClientId,
+  );
   // ── Current user ─────────────────────────────────────────
   static User? get currentUser => _sb.auth.currentUser;
   static bool  get isLoggedIn  => currentUser != null;
@@ -28,12 +39,20 @@ class AuthService {
   // ══════════════════════════════════════════════════════════
   static Future<AuthResult> signInWithGoogle() async {
     try {
-      const webClientId =
-          'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com'; // ← replace karo
+      if (kIsWeb) {
+        debugPrint('[Auth] Starting Google OAuth (Web Redirect Flow)');
+        await _sb.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: kDebugMode 
+              ? 'http://localhost:3000' 
+              : 'https://synap-ac981.web.app',
+        );
+        // On web, signInWithOAuth triggers a redirect.
+        return AuthResult._(success: true, cancelled: false); 
+      }
 
-      final googleSignIn = GoogleSignIn(serverClientId: webClientId);
-      final googleUser   = await googleSignIn.signIn();
-
+      // Mobile Flow (Native)
+      final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         return AuthResult.cancelled();
       }
@@ -43,7 +62,7 @@ class AuthService {
       final accessToken = googleAuth.accessToken;
 
       if (idToken == null) {
-        return AuthResult.error('Google sign in failed');
+        return AuthResult.error('Google sign in failed (no token)');
       }
 
       final res = await _sb.auth.signInWithIdToken(
@@ -52,48 +71,17 @@ class AuthService {
         accessToken: accessToken,
       );
 
-      await _updateProfile(
-        name:   googleUser.displayName,
-        avatar: googleUser.photoUrl,
-      );
-
-      return AuthResult.success(res.user!);
+      if (res.user != null) {
+        await _updateProfile(
+          name:   googleUser.displayName,
+          avatar: googleUser.photoUrl,
+        );
+        return AuthResult.success(res.user!);
+      }
+      
+      return AuthResult.error('Failed to sign in to Supabase');
     } catch (e) {
       debugPrint('[Auth] Google error: $e');
-      return AuthResult.error(e.toString());
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // APPLE SIGN IN
-  // ══════════════════════════════════════════════════════════
-  static Future<AuthResult> signInWithApple() async {
-    try {
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      final res = await _sb.auth.signInWithIdToken(
-        provider: OAuthProvider.apple,
-        idToken:  credential.identityToken!,
-      );
-
-      // Apple sirf first time name deta hai
-      final fullName = [
-        credential.givenName,
-        credential.familyName,
-      ].where((s) => s != null).join(' ');
-
-      if (fullName.isNotEmpty) {
-        await _updateProfile(name: fullName);
-      }
-
-      return AuthResult.success(res.user!);
-    } catch (e) {
-      debugPrint('[Auth] Apple error: $e');
       return AuthResult.error(e.toString());
     }
   }
@@ -255,6 +243,9 @@ class AuthService {
   // SIGN OUT
   // ══════════════════════════════════════════════════════════
   static Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {}
     await _sb.auth.signOut();
   }
 
@@ -263,15 +254,20 @@ class AuthService {
   // ══════════════════════════════════════════════════════════
   static Future<void> _updateProfile({
     String? name, String? avatar}) async {
-    if (userId == null) return;
-    final updates = <String, dynamic>{};
-    if (name   != null) updates['full_name']  = name;
-    if (avatar != null) updates['avatar_url'] = avatar;
-    if (updates.isEmpty) return;
-    updates['updated_at'] = DateTime.now().toIso8601String();
-    await _sb.from('profiles').upsert({
-      'id': userId, ...updates,
-    });
+    try {
+      if (userId == null) return;
+      final updates = <String, dynamic>{};
+      if (name   != null) updates['full_name']  = name;
+      if (avatar != null) updates['avatar_url'] = avatar;
+      if (updates.isEmpty) return;
+      updates['updated_at'] = DateTime.now().toIso8601String();
+      await _sb.from('profiles').upsert({
+        'id': userId, ...updates,
+      });
+    } catch (e) {
+      // Non-fatal: profile table may not exist yet
+      debugPrint('[Auth] Profile update skipped: $e');
+    }
   }
 
   static String _friendlyError(String msg) {

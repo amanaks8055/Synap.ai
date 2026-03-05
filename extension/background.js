@@ -11,7 +11,9 @@ function setData(obj) {
 async function getUserId() {
   const { userId } = await getData();
   if (userId) return userId;
-  const id = 'synap_' + Math.random().toString(36).substr(2, 12);
+  // Use deterministic test ID so Flutter app can find it
+  // In production, this would come from auth flow
+  const id = 'synap_test_user';
   await setData({ userId: id });
   return id;
 }
@@ -136,17 +138,24 @@ function getDefaultLimit(provider) {
 chrome.alarms.create('sync', { periodInMinutes: 3 });
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== 'sync') return;
-  // Ask content scripts to fetch real usage
+
+  // Also sync existing data to Supabase on each alarm
+  const { usage = {} } = await getData();
+  if (Object.keys(usage).length > 0) {
+    await syncToSupabase(usage);
+  }
+
+  // Ask bridge scripts (ISOLATED world) to trigger MAIN world fetch
   const tabs = await chrome.tabs.query({});
+  const targets = [
+    'claude.ai', 'chatgpt.com', 'gemini.google.com', 'www.perplexity.ai'
+  ];
   for (const tab of tabs) {
     if (!tab.url) continue;
     let hostname = '';
     try { hostname = new URL(tab.url).hostname; } catch (_) { continue; }
-    if (hostname === 'claude.ai' || hostname.endsWith('.claude.ai')) {
-      chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => { });
-    }
-    if (hostname === 'chatgpt.com' || hostname.endsWith('.chatgpt.com')) {
-      chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => { });
+    if (targets.some(t => hostname === t || hostname.endsWith('.' + t))) {
+      chrome.tabs.sendMessage(tab.id, { action: 'fetchRealUsage' }).catch(() => {});
     }
   }
 });

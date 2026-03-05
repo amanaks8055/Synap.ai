@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../theme/app_theme.dart';
@@ -47,6 +48,7 @@ class _AdBannerPlaceholderState extends State<AdBannerPlaceholder> {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) return const SizedBox.shrink();
     if (_isAdLoaded && _bannerAd != null) {
       return Container(
         alignment: Alignment.center,
@@ -116,6 +118,7 @@ class _AdInlinePlaceholderState extends State<AdInlinePlaceholder> {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) return const SizedBox.shrink();
     if (_isAdLoaded && _inlineAd != null) {
       return Container(
         margin: const EdgeInsets.symmetric(vertical: 8),

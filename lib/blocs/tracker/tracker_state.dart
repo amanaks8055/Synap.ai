@@ -11,14 +11,14 @@ class TrackerState extends Equatable {
   final String? alertToolId;
   final String? errorMessage;
 
-  const TrackerState({
+  TrackerState({
     this.status = TrackerStatus.initial,
-    this.tools = const [],
+    List<TrackerTool>? tools,
     this.lastSync,
     this.isLive = false,
     this.alertToolId,
     this.errorMessage,
-  });
+  }) : tools = tools ?? const [];
 
   // ── Filtered getters (screen use karta hai) ──────────────
   List<TrackerTool> get activeTools =>

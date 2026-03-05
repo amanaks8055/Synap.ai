@@ -14,6 +14,7 @@ class SynapPlans {
   static const String studentYearly  = 'synap_student_yearly';   // ₹549
 
   // ── PROFESSIONAL TIER ───────────────────────────────────
+  static const String pro1Month      = 'synap_pro_1month';       // ₹59
   static const String pro4Month      = 'synap_pro_4month';       // ₹149
   static const String proYearly      = 'synap_pro_yearly';       // ₹749
 
@@ -22,12 +23,13 @@ class SynapPlans {
     student2Month,
     student7Month,
     studentYearly,
+    pro1Month,
     pro4Month,
     proYearly,
   };
 
   // Helper to check if a product ID is a Professional tier plan
-  static bool isPro(String id) => id == pro4Month || id == proYearly;
+  static bool isPro(String id) => id == pro1Month || id == pro4Month || id == proYearly;
 
   // Static plan definitions (shown before Play Store responds)
   static const List<PlanDefinition> studentPlans = [
@@ -65,6 +67,16 @@ class SynapPlans {
 
   static const List<PlanDefinition> proPlans = [
     PlanDefinition(
+      id: pro1Month,
+      tier: PlanTier.professional,
+      label: '1 Month',
+      price: '₹59',
+      priceValue: 59,
+      period: '1 month',
+      perMonth: '₹59/mo',
+      highlight: 'BEST REFILL',
+    ),
+    PlanDefinition(
       id: pro4Month,
       tier: PlanTier.professional,
       label: '4 Months',
@@ -72,7 +84,7 @@ class SynapPlans {
       priceValue: 149,
       period: '4 months',
       perMonth: '₹37.3/mo',
-      highlight: null,
+      highlight: 'POPULAR',
     ),
     PlanDefinition(
       id: proYearly,

@@ -14,6 +14,7 @@ class TrackerTool {
   bool isEnabled;
   bool isPinned;
   String? provider;
+  final String source; // 'api' or 'estimated'
 
   TrackerTool({
     required this.id,
@@ -29,6 +30,7 @@ class TrackerTool {
     this.isEnabled = true,
     this.isPinned = false,
     this.provider,
+    this.source = 'api',
   });
 
   // ── Visual getters ────────────────────────────────────────
@@ -136,6 +138,7 @@ class TrackerTool {
           ? DateTime.fromMillisecondsSinceEpoch(
               (data['lastFetched'] as num).toInt())
           : null,
+      source: data['source']?.toString() ?? 'api',
     );
   }
 
@@ -147,6 +150,7 @@ class TrackerTool {
     DateTime? resetAt,
     bool? isEnabled,
     bool? isPinned,
+    String? source,
   }) {
     return TrackerTool(
       id: id,
@@ -161,6 +165,7 @@ class TrackerTool {
       lastFetched: lastFetched,
       isEnabled: isEnabled ?? this.isEnabled,
       isPinned: isPinned ?? this.isPinned,
+      source: source ?? this.source,
     );
   }
 
@@ -173,6 +178,39 @@ class TrackerTool {
     };
     return names[id] ?? id;
   }
+
+  /// Default tools matching CodexBar providers (session + weekly where available)
+  static List<TrackerTool> get defaultTools => [
+    TrackerTool(
+      id: 'chatgpt',
+      name: 'ChatGPT',
+      sessionUsed: 0,
+      sessionLimit: 40,
+      isEnabled: true,
+    ),
+    TrackerTool(
+      id: 'claude',
+      name: 'Claude',
+      sessionUsed: 0,
+      sessionLimit: 10,
+      weeklyLimit: 50,
+      isEnabled: true,
+    ),
+    TrackerTool(
+      id: 'gemini',
+      name: 'Gemini',
+      sessionUsed: 0,
+      sessionLimit: 100,
+      isEnabled: true,
+    ),
+    TrackerTool(
+      id: 'perplexity',
+      name: 'Perplexity',
+      sessionUsed: 0,
+      sessionLimit: 50,
+      isEnabled: false, // In catalog by default — user enables
+    ),
+  ];
 
   @override
   bool operator ==(Object other) =>

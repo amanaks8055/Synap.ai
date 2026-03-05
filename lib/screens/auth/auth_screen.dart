@@ -107,14 +107,14 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             ),
             _AuroraDrift(
               controller: _auroraController,
-              color: AuthColors.cyan.withValues(alpha: 0.12),
+              color: AuthColors.cyan.withOpacity(0.12),
               baseOffset: const Offset(-50, -50),
               driftOffset: const Offset(60, 40),
               size: const Size(500, 300),
             ),
             _AuroraDrift(
               controller: _auroraController,
-              color: AuthColors.teal.withValues(alpha: 0.07),
+              color: AuthColors.teal.withOpacity(0.07),
               baseOffset: const Offset(50, 400),
               driftOffset: const Offset(-50, -60),
               size: const Size(400, 400),
@@ -208,7 +208,7 @@ class _StarPainter extends CustomPainter {
 
     for (var star in stars) {
       final alpha = star.alpha * (0.6 + 0.4 * sin(time * 2 * pi * star.speed * 10));
-      paint.color = const Color(0xFFB4E6F5).withValues(alpha: alpha.clamp(0.0, 1.0));
+      paint.color = const Color(0xFFB4E6F5).withOpacity(alpha.clamp(0.0, 1.0));
       canvas.drawCircle(
         Offset(star.x * size.width, star.y * size.height),
         star.size,
@@ -266,8 +266,8 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
                 width: 100, height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AuthColors.cyan.withValues(alpha: 0.3),
-                  boxShadow: [BoxShadow(color: AuthColors.cyan.withValues(alpha: 0.5), blurRadius: 40)],
+                  color: AuthColors.cyan.withOpacity(0.3),
+                  boxShadow: [BoxShadow(color: AuthColors.cyan.withOpacity(0.5), blurRadius: 40)],
                 ),
               ),
             ),

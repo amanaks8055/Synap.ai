@@ -28,14 +28,25 @@ class ExtensionSyncService {
         .listen((rows) {
       if (rows.isEmpty) { return; }
       _processPayload(rows.first['payload']);
-    }, onError: (e) => print('[Synap] Realtime error: $e'));
+    }, onError: (e) {
+      if (e.toString().contains('SocketException') || e.toString().contains('Failed host lookup')) {
+        return; // Silent for connectivity issues
+      }
+      print('[Synap] Realtime error: $e');
+    });
   }
 
   Future<void> _fetchOnce(String userId) async {
     try {
       final res = await _supabase.from('extension_sync').select().eq('user_id', userId).maybeSingle();
       if (res != null) { _processPayload(res['payload']); }
-    } catch (e) { print('[Synap] Fetch error: $e'); }
+    } catch (e) {
+      if (e.toString().contains('SocketException') || e.toString().contains('Failed host lookup')) {
+        // Silent error for connectivity issues to avoid log bloating
+        return;
+      }
+      print('[Synap] Fetch error: $e');
+    }
   }
 
   void _processPayload(dynamic payload) {

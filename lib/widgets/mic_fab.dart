@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'moving_border_button.dart';
+import 'ai_loader.dart';
+import '../theme/app_theme.dart';
 
 class MicFAB extends StatefulWidget {
   final VoidCallback onTap;
@@ -10,7 +13,6 @@ class MicFAB extends StatefulWidget {
 
 class _MicFABState extends State<MicFAB> with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  bool _pressed = false;
 
   @override
   void initState() {
@@ -28,67 +30,42 @@ class _MicFABState extends State<MicFAB> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        HapticFeedback.mediumImpact();
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (_, __) => AnimatedScale(
-          scale: _pressed ? 0.91 : 1.0,
-          duration: const Duration(milliseconds: 100),
-          child: SizedBox(
-            width: 72, height: 72,
-            child: Stack(alignment: Alignment.center, children: [
-              // Outer pulse ring
-              Transform.scale(
-                scale: 1.0 + 0.16 * _ctrl.value,
-                child: Container(
-                  width: 72, height: 72,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFF00C8E8)
-                        .withValues(alpha: 0.07 + 0.06 * _ctrl.value),
-                  ),
-                ),
+    return AnimatedBuilder(
+      animation: _ctrl,
+        builder: (_, __) => Stack(alignment: Alignment.center, children: [
+          // Outer pulse ring
+          Transform.scale(
+            scale: 1.0 + 0.2 * _ctrl.value,
+            child: Container(
+              width: 72, height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: SynapColors.accent.withOpacity(0.2),
+                boxShadow: [
+                  BoxShadow(color: SynapColors.accent.withOpacity(0.3), blurRadius: 15),
+                ],
               ),
-              // Inner border ring
-              Container(
-                width: 62, height: 62,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF00C8E8)
-                        .withValues(alpha: 0.18 + 0.14 * _ctrl.value),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              // Main cyan button
-              Container(
-                width: 52, height: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF00C8E8),
-                  boxShadow: [BoxShadow(
-                    color: const Color(0xFF00C8E8)
-                        .withValues(alpha: 0.22 + 0.14 * _ctrl.value),
-                    blurRadius: 20, spreadRadius: 2,
-                  )],
-                ),
-                child: const Icon(
-                  Icons.mic_rounded,
-                  color: Color(0xFF05080F), size: 24,
-                ),
-              ),
-            ]),
+            ),
           ),
-        ),
-      ),
-    );
+          // Main Button with Moving Border
+          SynapMovingBorderButton(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              widget.onTap();
+            },
+            borderRadius: 36, // Circular
+            width: 54,
+            height: 54,
+            backgroundColor: const Color(0xFF00C8E8),
+            glowColor: Colors.white,
+            duration: const Duration(seconds: 2),
+            padding: EdgeInsets.zero,
+            child: const SynapAiLoader(
+              size: 54,
+              text: '', // No text for FAB
+            ),
+          ),
+        ]),
+      );
   }
 }

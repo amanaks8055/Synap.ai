@@ -1,0 +1,110 @@
+-- SYNAP AI TOOLS — BATCH 10 (200 famous tools)
+INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,website_url,has_free_tier,is_featured,click_count) VALUES
+
+-- ━━━ PRODUCTIVITY TOOLS AI ━━━
+('motion-ai','Motion','motion-ai','research','AI calendar and task manager auto-scheduling your perfect day.','📅','https://usemotion.com',false,false,4200),
+('reclaim-ai','Reclaim AI','reclaim','research','AI smart calendar scheduling habits, tasks, and meetings.','📅','https://reclaim.ai',true,false,3800),
+('clockwise','Clockwise AI','clockwise','research','AI calendar optimization creating focus time and reducing meetings.','⏰','https://clockwise.com',true,false,3200),
+('sunsama','Sunsama','sunsama','research','AI daily planner combining calendar and task management mindfully.','🌅','https://sunsama.com',false,false,2600),
+('akiflow','Akiflow','akiflow','research','AI task manager unifying calendars and to-do lists.','🔷','https://akiflow.com',false,false,1800),
+('fantastical-ai','Fantastical AI','fantastical','research','AI calendar app for Apple with natural language event creation.','📆','https://flexibits.com/fantastical',false,false,3400),
+('spark-email','Spark Mail AI','spark-mail','research','AI email client with smart inbox and writing suggestions.','✨','https://sparkmailapp.com',true,false,3600),
+('superhuman-2','Superhuman','superhuman-2','research','Fastest AI email client with split inbox and AI triage.','⚡','https://superhuman.com',false,false,4800),
+('raycast-ai','Raycast AI','raycast','research','AI launcher for Mac with extensions, snippets, and AI chat.','🔍','https://raycast.com',true,false,5200),
+('alfred-ai','Alfred','alfred','research','Mac AI productivity app with custom workflows and automation.','🎩','https://alfredapp.com',true,false,3800),
+('raindrop','Raindrop.io AI','raindrop','research','AI bookmark manager with tagging and full-text search.','🌧️','https://raindrop.io',true,false,2800),
+('pocket-ai','Pocket AI','pocket','research','AI article saver with read-later and content recommendations.','📌','https://getpocket.com',true,false,4200),
+('instapaper-ai','Instapaper AI','instapaper','research','AI read-later app with highlighting and text-to-speech.','📖','https://instapaper.com',true,false,2600),
+('readwise','Readwise AI','readwise','research','AI capturing and reviewing highlights from books and articles.','📚','https://readwise.io',false,false,3200),
+('reader-app','Readwise Reader','reader','research','AI read-later app with RSS, newsletters, and PDF annotation.','📰','https://read.readwise.io',false,false,2800),
+('matter-app','Matter','matter','research','AI reader for newsletters and articles with audio listening.','📱','https://hq.getmatter.com',true,false,1800),
+('feedly-ai','Feedly AI','feedly','research','AI news reader with Leo AI filtering and prioritizing stories.','📰','https://feedly.com',true,false,4600),
+('inoreader-ai','Inoreader AI','inoreader','research','AI RSS reader with rules engine and content monitoring.','📰','https://inoreader.com',true,false,2400),
+('omnivore','Omnivore AI','omnivore','research','Free open-source AI read-later app with highlighting.','📖','https://omnivore.app',true,false,1600),
+('remnote','RemNote','remnote-2','research','AI note-taking with built-in spaced repetition flashcards.','🧠','https://remnote.com',true,false,2200),
+
+-- ━━━ CLOUD & INFRASTRUCTURE AI ━━━
+('vercel','Vercel','vercel','code','AI-powered deployment platform for Next.js and React apps.','▲','https://vercel.com',true,true,12000),
+('netlify-ai','Netlify AI','netlify','code','AI-powered web hosting and deployment with edge functions.','🔷','https://netlify.com',true,true,8200),
+('cloudflare-ai','Cloudflare AI','cloudflare','code','AI Workers running serverless code and ML at the edge globally.','🟠','https://cloudflare.com',true,false,6800),
+('aws-ai','AWS AI Services','aws','code','Amazon complete suite of AI/ML services in the cloud.','🟠','https://aws.amazon.com/ai',false,true,14000),
+('gcp-ai','Google Cloud AI','gcp','code','Google Cloud AI platform with Vertex AI and pre-trained APIs.','🔵','https://cloud.google.com/ai',false,true,11000),
+('azure-ai','Azure AI Services','azure','code','Microsoft cloud AI services with OpenAI and cognitive APIs.','🔵','https://azure.microsoft.com/ai',false,true,10000),
+('digitalocean-ai','DigitalOcean AI','digitalocean','code','Cloud GPU droplets and AI/ML infrastructure for developers.','🔵','https://digitalocean.com',true,false,5200),
+('lambda-gpu','Lambda GPU Cloud','lambda','code','GPU cloud for AI training with NVIDIA H100 and A100 clusters.','🔷','https://lambdalabs.com',false,false,3600),
+('coreweave','CoreWeave','coreweave','code','GPU cloud infrastructure purpose-built for AI workloads.','🔷','https://coreweave.com',false,false,2800),
+('runpod','RunPod','runpod','code','Serverless GPU cloud for AI inference and training.','🔷','https://runpod.io',true,false,4200),
+
+-- ━━━ CHATBOT BUILDERS AI ━━━
+('manychat-ai','ManyChat AI','manychat','marketing','AI chatbot builder for Instagram, WhatsApp, and Messenger.','💬','https://manychat.com',true,true,6800),
+('chatfuel','Chatfuel AI','chatfuel','marketing','AI chatbot platform for WhatsApp and Messenger marketing.','🤖','https://chatfuel.com',true,false,4200),
+('landbot','Landbot AI','landbot','marketing','AI no-code chatbot builder for web, WhatsApp, and Messenger.','🤖','https://landbot.io',true,false,2800),
+('tars','Tars AI','tars','marketing','AI conversational chatbot for lead generation and support.','🤖','https://hellotars.com',false,false,2200),
+('pandorabots','Pandorabots','pandorabots','marketing','AI chatbot hosting platform with AIML-based development.','🤖','https://pandorabots.com',true,false,1600),
+('dialogflow','Dialogflow (Google)','dialogflow','marketing','Google AI chatbot building platform with NLU integration.','🔵','https://cloud.google.com/dialogflow',true,false,5200),
+('rasa-ai','Rasa','rasa','marketing','Open-source AI conversational platform for enterprise chatbots.','🤖','https://rasa.com',true,false,3800),
+('kommunicate','Kommunicate','kommunicate','marketing','AI customer service automation with chatbot and human handoff.','💬','https://kommunicate.io',true,false,1800),
+('crisp-ai','Crisp AI','crisp','marketing','AI customer messaging platform with shared inbox and chatbot.','💬','https://crisp.chat',true,false,2600),
+('drift-chat','Drift Revenue','drift-chat','marketing','AI conversational platform for revenue acceleration.','💬','https://drift.com',false,false,3200),
+
+-- ━━━ API & DEVELOPER TOOLS AI ━━━
+('postman-ai','Postman AI','postman','code','AI-powered API development platform with Postbot assistant.','🟠','https://postman.com',true,true,9800),
+('insomnia-ai','Insomnia','insomnia','code','Open-source AI API client for REST, GraphQL, and gRPC.','🌙','https://insomnia.rest',true,false,3600),
+('rapidapi','RapidAPI','rapidapi','code','AI-powered API marketplace discovering and connecting to APIs.','⚡','https://rapidapi.com',true,false,5200),
+('swagger-ai','Swagger AI','swagger','code','AI OpenAPI specification tools for API design and documentation.','📄','https://swagger.io',true,false,4200),
+('github','GitHub','github','code','AI-powered code hosting with Copilot, Actions, and Codespaces.','🐱','https://github.com',true,true,45000),
+('gitlab-ai','GitLab AI','gitlab','code','AI DevSecOps platform with code suggestions and vulnerability detection.','🦊','https://gitlab.com',true,false,8200),
+('bitbucket-ai','Bitbucket AI','bitbucket','code','Atlassian AI code repository with Pipelines CI/CD.','🔵','https://bitbucket.org',true,false,5800),
+('docker-ai','Docker AI','docker','code','AI container platform with Docker Scout for security analysis.','🐳','https://docker.com',true,false,9200),
+('kubernetes-ai','Kubernetes AI','kubernetes','code','AI container orchestration with intelligent auto-scaling.','☸️','https://kubernetes.io',true,false,7800),
+('terraform-ai','Terraform AI','terraform','code','AI infrastructure-as-code with HCL and provider ecosystem.','🔷','https://terraform.io',true,false,5600),
+
+-- ━━━ TESTING & QA AI ━━━
+('testim','Testim AI','testim','code','AI end-to-end test automation with self-healing locators.','🧪','https://testim.io',true,false,2800),
+('mabl-ai','Mabl AI','mabl','code','AI test automation with auto-healing and visual regression.','🔷','https://mabl.com',true,false,2200),
+('applitools','Applitools AI','applitools','code','AI visual testing and monitoring for web and mobile UI.','👁️','https://applitools.com',true,false,3200),
+('percy','Percy (BrowserStack)','percy','code','AI visual review platform catching UI changes automatically.','📷','https://percy.io',true,false,2400),
+('cypress-ai','Cypress AI','cypress','code','AI-enhanced end-to-end testing framework for web applications.','🌲','https://cypress.io',true,false,5800),
+('playwright-ai','Playwright','playwright','code','Microsoft AI-powered cross-browser testing framework.','🎭','https://playwright.dev',true,false,6200),
+('selenium-ai','Selenium AI','selenium','code','AI-enhanced browser automation framework for web testing.','🔷','https://selenium.dev',true,false,5200),
+('k6-ai','k6','k6','code','AI load testing tool for engineering teams by Grafana Labs.','📊','https://k6.io',true,false,3200),
+('loadero','Loadero','loadero','code','AI cloud-based load testing for web and WebRTC applications.','🔷','https://loadero.com',true,false,1600),
+('qase-ai','Qase AI','qase','code','AI test management platform with automation integration.','🧪','https://qase.io',true,false,1800),
+
+-- ━━━ BLOCKCHAIN & WEB3 AI ━━━
+('chainGPT','ChainGPT','chaingpt','code','AI model for blockchain technology, smart contracts, and crypto.','⛓️','https://chaingpt.org',true,false,2800),
+('fetch-ai','Fetch.ai','fetch','code','AI agent platform for decentralized autonomous services.','🤖','https://fetch.ai',true,false,2400),
+('ocean-ai','Ocean Protocol','ocean','code','AI data marketplace enabling data sharing for training models.','🌊','https://oceanprotocol.com',true,false,2000),
+('singularity','SingularityNET','singularity','code','Decentralized AI marketplace creating and monetizing AI services.','🔷','https://singularitynet.io',true,false,2200),
+('bittensor','Bittensor','bittensor','code','Decentralized AI network incentivizing open-source ML models.','🧠','https://bittensor.com',true,false,1800),
+('render-token','Render Network','render-token','code','Decentralized GPU rendering network for AI and 3D content.','🎨','https://rendernetwork.com',false,false,2600),
+
+-- ━━━ DOCUMENT & PDF AI ━━━
+('smallpdf-ai','SmallPDF AI','smallpdf','research','AI PDF toolkit with compress, convert, merge, and chat features.','📄','https://smallpdf.com',true,false,6800),
+('ilovepdf','iLovePDF AI','ilovepdf','research','Free AI PDF tools for merge, split, compress, and convert.','❤️','https://ilovepdf.com',true,false,5400),
+('adobe-acrobat-ai','Acrobat AI','acrobat-ai','research','Adobe AI assistant in Acrobat for PDF summarizing and Q&A.','📄','https://acrobat.adobe.com',false,false,7200),
+('docsumo','Docsumo AI','docsumo','research','AI document processing extracting data from invoices and forms.','📋','https://docsumo.com',false,false,1800),
+('nanonets','Nanonets','nanonets','research','AI document processing with OCR and intelligent extraction.','🔷','https://nanonets.com',true,false,2400),
+('rossum','Rossum AI','rossum','research','AI document processing for invoices and purchase orders.','📄','https://rossum.ai',false,false,2000),
+('parseur','Parseur AI','parseur','research','AI email and PDF parser extracting data automatically.','📧','https://parseur.com',true,false,1400),
+('textract','Amazon Textract','textract','research','AWS AI service extracting text and data from scanned documents.','📄','https://aws.amazon.com/textract',false,false,3200),
+('google-docai','Google Document AI','docai','research','Google Cloud AI for document processing and understanding.','📄','https://cloud.google.com/document-ai',false,false,2800),
+('mathpix','Mathpix','mathpix','research','AI OCR converting handwritten math and documents to LaTeX.','📐','https://mathpix.com',true,false,3400),
+
+-- ━━━ HARDWARE & ROBOTICS AI ━━━  
+('tesla-fsd','Tesla FSD','tesla-fsd','automation','Tesla Full Self-Driving AI for autonomous vehicle navigation.','🚗','https://tesla.com',false,true,8400),
+('waymo','Waymo','waymo','automation','Google autonomous driving technology with driverless taxi service.','🚕','https://waymo.com',false,false,5800),
+('boston-dynamics','Boston Dynamics','boston-dynamics','automation','AI-powered robots for warehouse automation and inspection.','🤖','https://bostondynamics.com',false,false,6200),
+('figure-ai','Figure AI','figure-ai','automation','AI humanoid robots for warehouse and manufacturing work.','🤖','https://figure.ai',false,false,4200),
+('nvidia-ai','NVIDIA AI','nvidia','automation','AI computing hardware and software powering modern AI.','🟢','https://nvidia.com/ai',false,true,14000),
+('raspberry-ai','Raspberry Pi AI','raspberry','automation','AI projects on affordable Raspberry Pi single-board computers.','🍓','https://raspberrypi.org',true,false,5200),
+('arduino-ai','Arduino AI','arduino','automation','AI and ML on Arduino microcontrollers for IoT projects.','🔵','https://arduino.cc',true,false,4800),
+('jetson','NVIDIA Jetson','jetson','automation','AI edge computing platform for robotics and embedded systems.','🟢','https://nvidia.com/jetson',false,false,3600),
+('coral-ai','Google Coral','coral','automation','Google AI edge TPU for fast ML inference on edge devices.','🪸','https://coral.ai',false,false,2800),
+('alexa-ai','Alexa AI','alexa','automation','Amazon AI voice assistant with 100K+ skills and smart home.','🔵','https://developer.amazon.com/alexa',true,true,22000),
+('google-home-ai','Google Home AI','google-home','automation','Google AI smart home assistant with Gemini integration.','🏠','https://home.google.com',true,true,18000),
+('siri-ai','Siri AI','siri','automation','Apple AI assistant with Apple Intelligence and on-device processing.','🍎','https://apple.com/siri',true,true,16000),
+('samsung-bixby','Bixby','bixby','automation','Samsung AI assistant with device control and Galaxy AI.','📱','https://bixby.samsung.com',true,false,6400),
+('mycroft','Mycroft','mycroft','automation','Open-source AI voice assistant for privacy-focused smart homes.','🔵','https://mycroft.ai',true,false,2200)
+
+ON CONFLICT (id) DO NOTHING;

@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/mic_fab.dart';
+import '../widgets/startup_kit_home_card.dart';
 
 import '../blocs/premium/premium_bloc.dart';
 import '../data/mock_data.dart';
 import '../models/tool_model.dart';
+import '../services/tool_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/tool_icon.dart';
 import 'category_tools_screen.dart';
+import '../widgets/moving_border_button.dart';
+import '../services/recommendation_service.dart';
+import '../widgets/tool_card_widget.dart';
+// tool_detail_sheet.dart import removed — all taps now go to ToolDetailScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SynapColors.bgPrimary,
       body: SafeArea(
         child: _query.isNotEmpty ? _buildSearchResults() : _buildHomeFeed(),
       ),
@@ -42,9 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _buildHeader(),
           _buildSearchBar(),
-          _buildSection('Trending', MockData.getFeaturedTools()),
+          _buildSection('🔥 Trending', ToolService.getTrendingTools()),
+          // Removed StartupKitHomeCard (placed in bottom navigation instead)
+          const SizedBox(height: 12),
           ...MockData.categories.map((cat) {
-            final tools = MockData.getToolsByCategory(cat.id);
+            final tools = ToolService.getToolsByCategory(cat.id);
             if (tools.isEmpty) return const SizedBox.shrink();
             return _buildSection(cat.name, tools, categoryId: cat.id);
           }),
@@ -67,28 +74,25 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: Colors.black,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: SynapColors.accent.withValues(alpha: 0.3)),
+              border: Border.all(color: SynapColors.accent.withOpacity(0.3)),
               boxShadow: [
-                BoxShadow(color: SynapColors.accent.withValues(alpha: 0.2), blurRadius: 10),
+                BoxShadow(color: SynapColors.accent.withOpacity(0.2), blurRadius: 10),
               ],
             ),
             child: SvgPicture.asset('assets/logo.svg'),
           ),
           const SizedBox(width: 10),
-          const Text('Synap', style: TextStyle(color: SynapColors.textPrimary, fontSize: 24, fontWeight: FontWeight.w800)),
+          Text('Synap', style: TextStyle(color: SynapStyles.textPrimary(context), fontSize: 24, fontWeight: FontWeight.w800)),
           const Spacer(),
           if (!isPremium)
-            GestureDetector(
+            SynapMovingBorderButton(
               onTap: () => Navigator.pushNamed(context, '/premium'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: SynapColors.accent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: SynapColors.accent.withValues(alpha: 0.3)),
-                ),
-                child: const Text('PRO', style: TextStyle(color: SynapColors.accent, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
-              ),
+              borderRadius: 8,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              backgroundColor: SynapColors.accent.withOpacity(0.15),
+              glowColor: SynapColors.accent,
+              duration: const Duration(seconds: 4),
+              child: const Text('PRO', style: TextStyle(color: SynapColors.accent, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
             ),
         ],
       ),
@@ -99,21 +103,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Container(
+      child: SynapMovingBorderButton(
+        borderRadius: 22,
         height: 44,
-        decoration: BoxDecoration(
-          color: SynapColors.bgSecondary,
-          borderRadius: BorderRadius.circular(22),
-        ),
+        padding: EdgeInsets.zero,
+        backgroundColor: SynapStyles.bgSecondary(context),
+        glowColor: SynapColors.accent,
+        duration: const Duration(seconds: 4),
         child: TextField(
           onChanged: (v) => setState(() => _query = v),
-          style: const TextStyle(color: SynapColors.textPrimary, fontSize: 14),
-          decoration: const InputDecoration(
+          style: TextStyle(color: SynapStyles.textPrimary(context), fontSize: 14),
+          decoration: InputDecoration(
             hintText: 'Search AI tools...',
-            hintStyle: TextStyle(color: SynapColors.textMuted, fontSize: 14),
-            prefixIcon: Icon(Icons.search_rounded, color: SynapColors.textMuted, size: 20),
+            hintStyle: TextStyle(color: SynapStyles.textMuted(context), fontSize: 14),
+            prefixIcon: Icon(Icons.search_rounded, color: SynapStyles.textMuted(context), size: 20),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
       ),
@@ -122,21 +127,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── SEARCH RESULTS ─────────────────────────────
   Widget _buildSearchResults() {
-    final results = MockData.searchTools(_query);
+    final results = ToolService.searchTools(_query);
     return Column(
       children: [
         _buildHeader(),
         _buildSearchBar(),
         Expanded(
           child: results.isEmpty
-              ? const Center(child: Text('No tools found', style: TextStyle(color: SynapColors.textMuted)))
+              ? Center(child: Text('No tools found', style: TextStyle(color: SynapStyles.textMuted(context))))
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                   itemCount: results.length,
-                  separatorBuilder: (_, __) => const Divider(color: SynapColors.divider, height: 1),
+                  separatorBuilder: (_, __) => Divider(color: SynapStyles.divider(context), height: 1),
                   itemBuilder: (_, i) {
                     final t = results[i];
                     return _SearchTile(tool: t, onTap: () {
+                      RecommendationService().record(t.id, UserEvent.viewed);
                       Navigator.pushNamed(context, '/toolDetail', arguments: t);
                     });
                   },
@@ -152,36 +158,45 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(title, style: const TextStyle(color: SynapColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
+                child: Text(title, style: TextStyle(color: SynapStyles.textPrimary(context), fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.3),
                   maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
               if (categoryId != null)
-                GestureDetector(
+                SynapMovingBorderButton(
                   onTap: () => Navigator.push(context, MaterialPageRoute(
                     builder: (_) => CategoryToolsScreen(categoryId: categoryId, categoryName: title),
                   )),
-                  child: const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Text('See all', style: TextStyle(color: SynapColors.accent, fontSize: 14, fontWeight: FontWeight.w500)),
-                  ),
+                  borderRadius: 20,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  backgroundColor: Colors.white.withOpacity(0.05),
+                  glowColor: SynapColors.accent,
+                  duration: const Duration(seconds: 3),
+                  child: const Text('See all', style: TextStyle(color: SynapColors.accent, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
             ],
           ),
         ),
         SizedBox(
-          height: 140,
+          height: 180,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: tools.length,
-            itemBuilder: (_, i) => _HomeCard(tool: tools[i], onTap: () {
-              Navigator.pushNamed(context, '/toolDetail', arguments: tools[i]);
-            }),
+            itemBuilder: (_, i) => ToolCardWidget(
+              name: tools[i].name,
+              imageUrl: tools[i].iconUrl,
+              badge: tools[i].hasFreeTier ? 'FREE' : 'PAID',
+              rating: tools[i].rating,
+              onTap: () {
+                RecommendationService().record(tools[i].id, UserEvent.viewed);
+                Navigator.pushNamed(context, '/toolDetail', arguments: tools[i]);
+              },
+            ),
           ),
         ),
       ],
@@ -189,51 +204,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ─── HOME CARD (POE STYLE) ────────────────────────
-class _HomeCard extends StatelessWidget {
-  final Tool tool;
-  final VoidCallback onTap;
-  const _HomeCard({required this.tool, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
-        child: Column(
-          children: [
-            // Letter icon
-            ToolIcon(name: tool.name, categoryId: tool.categoryId, size: 80, fontSize: 32, radius: 16),
-            const SizedBox(height: 8),
-            // Name — safe overflow
-            Text(tool.name, style: const TextStyle(color: SynapColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w500),
-              maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
-            const SizedBox(height: 4),
-            // Free/Paid badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: tool.hasFreeTier
-                    ? SynapColors.accentGreen.withValues(alpha: 0.15)
-                    : SynapColors.bgSecondary,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                tool.hasFreeTier ? 'Free' : 'Paid',
-                style: TextStyle(
-                  color: tool.hasFreeTier ? SynapColors.accentGreen : SynapColors.textMuted,
-                  fontSize: 9, fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ─── SEARCH TILE ──────────────────────────────────
 class _SearchTile extends StatelessWidget {
@@ -250,15 +220,15 @@ class _SearchTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            ToolIcon(name: tool.name, categoryId: tool.categoryId, size: 44, fontSize: 18, radius: 12),
+            ToolIcon(name: tool.name, categoryId: tool.categoryId, iconUrl: tool.iconUrl, size: 44, fontSize: 18, radius: 12),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tool.name, style: const TextStyle(color: SynapColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text(tool.name, style: TextStyle(color: SynapStyles.textPrimary(context), fontSize: 15, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
-                  Text(tool.description, style: const TextStyle(color: SynapColors.textSecondary, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(tool.description, style: TextStyle(color: SynapStyles.textSecondary(context), fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),

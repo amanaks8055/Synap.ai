@@ -7,7 +7,11 @@ import 'tracker_state.dart';
 class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
   final FlutterLocalNotificationsPlugin? notifications;
 
-  TrackerBloc({this.notifications}) : super(const TrackerState()) {
+  TrackerBloc({this.notifications})
+      : super(TrackerState(
+          status: TrackerStatus.loaded,
+          tools: TrackerTool.defaultTools,
+        )) {
     on<TrackerToolUpdated>(_onToolUpdated);
     on<TrackerRefreshRequested>(_onRefreshRequested);
     on<TrackerToolToggled>(_onToolToggled);

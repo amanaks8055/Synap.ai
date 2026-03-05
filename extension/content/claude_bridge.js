@@ -1,5 +1,36 @@
-window.addEventListener('__synapUsage', (e) => {
-    const provider = e.detail?.provider;
-    if (provider) chrome.runtime.sendMessage({ action: 'usage', provider });
+// ============================================================
+// SYNAP — Claude Bridge (ISOLATED World)
+// Relays postMessage from MAIN → chrome.runtime → background
+// ============================================================
+
+window.addEventListener('message', (event) => {
+  if (event.source !== window) return;
+
+  // Real usage data from API
+  if (event.data?.type === 'SYNAP_REAL_USAGE' && event.data?.provider === 'claude') {
+    chrome.runtime.sendMessage({
+      action: 'realUsageData',
+      provider: 'claude',
+      data: event.data.data
+    }).catch(() => {});
+    return;
+  }
+
+  // Simple count increment
+  if (event.data?.type === 'SYNAP_USAGE' && event.data?.provider === 'claude') {
+    chrome.runtime.sendMessage({
+      action: 'usage',
+      provider: 'claude'
+    }).catch(() => {});
+    return;
+  }
 });
-console.log('[Synap] Claude bridge ready ✅');
+
+// Listen for background triggers and relay to MAIN world
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.action === 'fetchRealUsage') {
+    window.postMessage({ type: 'SYNAP_FETCH_USAGE', provider: 'claude' }, '*');
+  }
+});
+
+console.log('[Synap] Claude bridge (ISOLATED) ready ✅');

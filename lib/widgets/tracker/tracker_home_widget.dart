@@ -51,7 +51,7 @@ class _State extends State<TrackerHomeWidget>
             color: const Color(0xFF090D16),
             border: Border.all(
               color: hasAlert
-                  ? const Color(0xFFF5A623).withValues(alpha:
+                  ? const Color(0xFFF5A623).withOpacity(
                       0.22 + 0.12 * _pulse.value)
                   : const Color(0xFF131B27),
               width: hasAlert ? 1.5 : 1,
@@ -67,7 +67,7 @@ class _State extends State<TrackerHomeWidget>
                     horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: const Color(0xFF00C8E8).withValues(alpha: 0.08),
+                    color: const Color(0xFF00C8E8).withOpacity(0.08),
                   ),
                   child: const Text('⚡ Free Tier Tracker',
                     style: TextStyle(fontFamily: 'Syne',
@@ -81,9 +81,9 @@ class _State extends State<TrackerHomeWidget>
                       horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(7),
-                      color: const Color(0xFFF5A623).withValues(alpha: 0.1),
+                      color: const Color(0xFFF5A623).withOpacity(0.1),
                       border: Border.all(
-                        color: const Color(0xFFF5A623).withValues(alpha: 0.25)),
+                        color: const Color(0xFFF5A623).withOpacity(0.25)),
                     ),
                     child: const Text('⚠️ Alert',
                       style: TextStyle(fontFamily: 'DM Sans',
@@ -128,9 +128,9 @@ class _State extends State<TrackerHomeWidget>
           width: 42, height: 42,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(11),
-            color: const Color(0xFF00C8E8).withValues(alpha: 0.07),
+            color: const Color(0xFF00C8E8).withOpacity(0.07),
             border: Border.all(
-              color: const Color(0xFF00C8E8).withValues(alpha: 0.18)),
+              color: const Color(0xFF00C8E8).withOpacity(0.18)),
           ),
           child: const Center(
             child: Text('📊', style: TextStyle(fontSize: 18))),
@@ -146,7 +146,7 @@ class _State extends State<TrackerHomeWidget>
             const SizedBox(height: 2),
             Text('Know how much ChatGPT, Claude & more you have left',
               style: TextStyle(fontFamily: 'DM Sans', fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.3), height: 1.4)),
+                color: Colors.white.withOpacity(0.3), height: 1.4)),
           ],
         )),
         const Icon(Icons.arrow_forward_ios,
@@ -212,8 +212,8 @@ class _MiniRow extends StatelessWidget {
             width: 30, height: 30,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: color.withValues(alpha: 0.08),
-              border: Border.all(color: color.withValues(alpha: 0.22)),
+              color: color.withOpacity(0.08),
+              border: Border.all(color: color.withOpacity(0.22)),
             ),
             child: Icon(Icons.add, color: color, size: 15),
           ),

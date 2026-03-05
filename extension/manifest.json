@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Synap Sensor",
-  "version": "1.0.0",
-  "description": "Tracks your AI usage across ChatGPT, Claude, Gemini",
+  "version": "1.1.0",
+  "description": "Tracks your AI usage across ChatGPT, Claude, Gemini, Perplexity",
   "permissions": [
     "cookies",
     "storage",
@@ -20,34 +20,52 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://chatgpt.com/*"
-      ],
-      "js": [
-        "content/chatgpt.js"
-      ],
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["content/chatgpt.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": [
-        "https://claude.ai/*"
-      ],
-      "js": [
-        "content/claude.js"
-      ],
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["content/chatgpt_bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content/claude.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": [
-        "https://gemini.google.com/*"
-      ],
-      "js": [
-        "content/gemini.js"
-      ],
+      "matches": ["https://claude.ai/*"],
+      "js": ["content/claude_bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": ["content/gemini.js"],
       "run_at": "document_start",
       "world": "MAIN"
+    },
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": ["content/gemini_bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://www.perplexity.ai/*"],
+      "js": ["content/perplexity.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.perplexity.ai/*"],
+      "js": ["content/perplexity_bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
     }
   ],
   "action": {

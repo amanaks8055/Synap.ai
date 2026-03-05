@@ -1,13 +1,18 @@
 // ══════════════════════════════════════════════════════════════
 // SYNAP — PremiumBloc
 // Full Google Play Billing via in_app_purchase
+// + Supabase server-side purchase verification (Layer 2)
 // Handles: Student + Professional tiers, restore, errors
 // ══════════════════════════════════════════════════════════════
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/auth_service.dart';
 import 'premium_event.dart';
 import 'premium_state.dart';
 import 'premium_plans.dart';
@@ -25,6 +30,7 @@ const _kPurchaseToken  = 'synap_purchase_token';
 class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
+  Completer<void>? _restoreCompleter;
 
   PremiumBloc() : super(PremiumState.initial()) {
     on<PremiumInitialized>(_onInit);
@@ -66,7 +72,12 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
       ));
     }
 
-    // ── Step 2: Check billing availability ──────────────────
+    // ── Step 2: Check Supabase for server-side premium ──────
+    if (!cachedPremium) {
+      await _checkSupabasePremium(emit);
+    }
+
+    // ── Step 3: Check billing availability ──────────────────
     final available = await _iap.isAvailable();
     if (!available) {
       emit(state.copyWith(
@@ -79,14 +90,14 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
 
     emit(state.copyWith(billingAvailable: true));
 
-    // ── Step 3: Subscribe to purchase stream ────────────────
+    // ── Step 4: Subscribe to purchase stream ────────────────
     _purchaseSub?.cancel();
     _purchaseSub = _iap.purchaseStream.listen(
       (list) => add(PremiumPurchaseUpdated(list)),
       onError: (e) => add(PremiumPurchaseError(e.toString())),
     );
 
-    // ── Step 4: Load products from Play Store ───────────────
+    // ── Step 5: Load products from Play Store ───────────────
     await _loadProducts(emit);
   }
 
@@ -195,7 +206,22 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
       }
 
       if (purchase.pendingCompletePurchase) {
-        await _iap.completePurchase(purchase);
+        // ── RACE CONDITION FIX ──
+        // Only complete non-success states here. 
+        // Success states (purchased/restored) will be completed inside _deliver 
+        // AFTER successful server-side confirmation.
+        if (purchase.status != PurchaseStatus.purchased && 
+            purchase.status != PurchaseStatus.restored) {
+          await _iap.completePurchase(purchase);
+        }
+      }
+
+      // ── Signal restore completion ──
+      if (purchase.status == PurchaseStatus.restored || 
+          purchase.status == PurchaseStatus.error) {
+        if (_restoreCompleter != null && !_restoreCompleter!.isCompleted) {
+          _restoreCompleter!.complete();
+        }
       }
     }
   }
@@ -209,27 +235,26 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
   ) async {
     final productId = purchase.productID;
     final tier = SynapPlans.isPro(productId) ? PlanTier.professional : PlanTier.student;
+    final purchaseToken = purchase.verificationData.serverVerificationData;
 
-    // ─── TODO: Server-side verification (CRITICAL for production) ───
-    // Replace this section with an API call to YOUR backend:
-    //
-    // final response = await http.post(
-    //   Uri.parse('https://your-api.com/verify-purchase'),
-    //   body: {
-    //     'purchaseToken': purchase.verificationData.serverVerificationData,
-    //     'productId': purchase.productID,
-    //     'packageName': 'com.synap.synap',
-    //   },
-    // );
-    // if (response.statusCode != 200) {
-    //   emit(state.copyWith(status: PremiumStatus.error,
-    //     errorMessage: 'Verification failed. Contact support.'));
-    //   return;
-    // }
-    //
-    // Your backend calls Google Play Developer API to verify:
-    // https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptions/get
-    // ────────────────────────────────────────────────────────────────
+    // ─── Server-side: Save to Supabase ───────────────────────
+    final success = await _syncToSupabase(
+      productId: productId,
+      tier: tier,
+      purchaseToken: purchaseToken,
+      purchaseId: purchase.purchaseID,
+    );
+
+    if (!success) {
+      // Don't complete the purchase if server sync failed
+      // Google will eventually retry or user can try "Restore"
+      return;
+    }
+
+    // Now it's safe to acknowledge the purchase
+    if (purchase.pendingCompletePurchase) {
+      await _iap.completePurchase(purchase);
+    }
 
     // Persist locally
     final prefs = await SharedPreferences.getInstance();
@@ -257,20 +282,38 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
     emit(state.copyWith(status: PremiumStatus.restoring, clearError: true));
 
     try {
+      _restoreCompleter = Completer<void>();
+
       await _iap.restorePurchases();
-      // Results come via purchaseStream with status=restored
-      await Future.delayed(const Duration(seconds: 3));
+      
+      // Wait for the stream to signal completion (via _onPurchaseUpdated)
+      // or timeout after 10 seconds if no purchases are found
+      await _restoreCompleter!.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('[Premium] Restore timed out (no purchases found)');
+        },
+      );
+
+      _restoreCompleter = null;
+
       if (!state.isPremium) {
-        emit(state.copyWith(
-          status: PremiumStatus.error,
-          errorMessage: 'No previous purchase found for this account.',
-        ));
+        await _checkSupabasePremium(emit);
+        
+        if (!state.isPremium) {
+          emit(state.copyWith(
+            status: PremiumStatus.error,
+            errorMessage: 'No previous purchase found for this account.',
+          ));
+        }
       }
     } catch (e) {
       emit(state.copyWith(
         status: PremiumStatus.error,
         errorMessage: 'Restore failed: ${_friendlyError(e.toString())}',
       ));
+    } finally {
+      _restoreCompleter = null;
     }
   }
 
@@ -305,6 +348,87 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
     ));
   }
 
+  // ══════════════════════════════════════════════════════════
+  // SERVER-SIDE: Sync purchase to Supabase
+  // ══════════════════════════════════════════════════════════
+  Future<bool> _syncToSupabase({
+    required String productId,
+    required PlanTier tier,
+    required String purchaseToken,
+    String? purchaseId,
+  }) async {
+    try {
+      final userId = AuthService.userId;
+      if (userId == null) return false;
+
+      debugPrint('[Premium] 🔒 Syncing to Supabase via Edge Function...');
+      
+      final res = await Supabase.instance.client.functions.invoke(
+        'verify-purchase',
+        body: {
+          'productId': productId,
+          'purchaseToken': purchaseToken,
+          'package_name': 'com.aman.synap', 
+        },
+        headers: { 'x-user-id': userId },
+      );
+
+      if (res.status == 200) {
+        debugPrint('[Premium] ✅ Purchase verified and synced');
+        return true;
+      } else {
+        debugPrint('[Premium] ❌ Verification failed: ${res.data}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('[Premium] ⚠️ Edge Function sync failed: $e');
+      return false;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SERVER-SIDE: Check Supabase for existing subscription
+  // ══════════════════════════════════════════════════════════
+  Future<void> _checkSupabasePremium(Emitter<PremiumState> emit) async {
+    try {
+      final userId = AuthService.userId;
+      if (userId == null) return;
+
+      final sb = Supabase.instance.client;
+      final res = await sb.from('subscriptions')
+          .select()
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+      if (res != null) {
+        final productId = res['product_id'] as String;
+        final tierStr = res['tier'] as String;
+        final tier = tierStr == 'professional'
+            ? PlanTier.professional
+            : PlanTier.student;
+
+        // Save to local cache
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_kIsPremium, true);
+        await prefs.setString(_kActivePlan, productId);
+        await prefs.setString(_kActiveTier, tierStr);
+
+        emit(state.copyWith(
+          isPremium: true,
+          activeProductId: productId,
+          activeTier: tier,
+          status: PremiumStatus.idle,
+        ));
+
+        debugPrint('[Premium] ✅ Restored from Supabase: $productId ($tierStr)');
+      }
+    } catch (e) {
+      // Non-fatal: will fall back to Google Play restore
+      debugPrint('[Premium] ⚠️ Supabase check failed: $e');
+    }
+  }
+
   String _friendlyError(String raw) {
     final r = raw.toLowerCase();
     if (r.contains('cancel'))           return 'Purchase was cancelled.';
@@ -312,6 +436,16 @@ class PremiumBloc extends Bloc<PremiumEvent, PremiumState> {
     if (r.contains('item_unavailable')) return 'This plan is not available right now.';
     if (r.contains('already_owned'))    return 'You already own this plan. Try "Restore Purchase".';
     return raw.length > 80 ? '${raw.substring(0, 80)}...' : raw;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // 8. COMPLIANCE: Subscription Management
+  // ══════════════════════════════════════════════════════════
+  static Future<void> openSubscriptionManagement() async {
+    final url = Uri.parse('https://play.google.com/store/account/subscriptions');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override

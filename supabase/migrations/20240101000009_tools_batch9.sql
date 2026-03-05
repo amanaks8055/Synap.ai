@@ -1,0 +1,103 @@
+-- SYNAP AI TOOLS — BATCH 9 (200 famous tools)
+INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,website_url,has_free_tier,is_featured,click_count) VALUES
+
+-- ━━━ TRANSLATION & LANGUAGE AI ━━━
+('google-translate','Google Translate','google-translate','writing','AI translation engine supporting 130+ languages with camera mode.','🌐','https://translate.google.com',true,true,42000),
+('apple-translate','Apple Translate','apple-translate','writing','Apple on-device AI translation with conversation mode.','🍎','https://apple.com',true,false,8200),
+('papago','Papago','papago','writing','Naver AI translator specializing in Asian language translation.','🦜','https://papago.naver.com',true,false,4200),
+('reverso-ai','Reverso AI','reverso','writing','AI translation and grammar tool with context-based examples.','🔄','https://reverso.net',true,false,3600),
+('systran','SYSTRAN AI','systran','writing','Enterprise AI translation with domain-specific neural models.','🌐','https://systran.net',false,false,2200),
+('smartcat','Smartcat AI','smartcat','writing','AI translation management platform for teams and agencies.','🐱','https://smartcat.com',true,false,1800),
+('phrase-ai','Phrase AI','phrase','writing','AI translation management with TMS and localization tools.','📝','https://phrase.com',false,false,2400),
+('lokalise-ai','Lokalise AI','lokalise','writing','AI localization platform for translating apps and websites.','🌍','https://lokalise.com',true,false,2000),
+('crowdin-ai','Crowdin AI','crowdin','writing','AI-powered localization with collaborative translation management.','🌐','https://crowdin.com',true,false,2600),
+('unbabel','Unbabel AI','unbabel','writing','AI plus human translation for customer service communications.','🔷','https://unbabel.com',false,false,1600),
+
+-- ━━━ SOCIAL MEDIA AI ━━━
+('opus-pro','Opus Pro','opus-pro','video','AI turning long videos into viral short clips with AI scoring.','🎬','https://opus.pro',true,true,8400),
+('repurpose-io','Repurpose.io','repurpose','video','AI content repurposing tool distributing to all platforms.','🔄','https://repurpose.io',false,false,2800),
+('typefully','Typefully','typefully','marketing','AI Twitter/X thread writer and scheduler with analytics.','🐦','https://typefully.com',true,false,3200),
+('taplio','Taplio','taplio','marketing','AI LinkedIn content creation and engagement tool.','💼','https://taplio.com',false,false,2600),
+('shield-app','Shield App','shield','marketing','AI LinkedIn analytics dashboard tracking growth and engagement.','🛡️','https://shieldapp.ai',false,false,1800),
+('publer','Publer AI','publer','marketing','AI social media scheduling with auto-scheduling and analytics.','📅','https://publer.io',true,false,2400),
+('socialbee-ai','SocialBee AI','socialbee','marketing','AI social media management with content categories and recycling.','🐝','https://socialbee.com',false,false,2200),
+('missinglettr','Missinglettr AI','missinglettr','marketing','AI creating social media campaigns from blog posts automatically.','📧','https://missinglettr.com',true,false,1600),
+('vistasocial','Vista Social AI','vistasocial','marketing','AI social media management with publishing and engagement tools.','📊','https://vistasocial.com',true,false,1800),
+('feedhive','FeedHive AI','feedhive','marketing','AI social media scheduling with inspiration and recycling.','🐝','https://feedhive.com',true,false,2000),
+('tweethunter','Tweet Hunter','tweethunter','marketing','AI Twitter growth tool with tweet inspiration and automation.','🎯','https://tweethunter.io',false,false,2400),
+('tribescaler','TribeScaler','tribescaler','marketing','AI Twitter hook generator improving tweet engagement.','📈','https://tribescaler.com',true,false,1400),
+('followr','Followr AI','followr','marketing','AI social media manager creating and scheduling content.','📱','https://followr.ai',true,false,1200),
+('flick-ai','Flick AI','flick','marketing','AI Instagram hashtag tool with content planning and scheduling.','📷','https://flick.tech',true,false,2600),
+('later-ai','Later AI','later','marketing','AI visual social media planner for Instagram, TikTok, Pinterest.','📱','https://later.com',true,false,3800),
+
+-- ━━━ ACCOUNTING & TAX AI ━━━
+('turbotax-ai','TurboTax AI','turbotax','finance','AI tax filing assistant with Intuit Assist for guidance.','💰','https://turbotax.intuit.com',false,false,8200),
+('taxact-ai','TaxAct AI','taxact','finance','AI tax preparation with smart import and error checking.','📋','https://taxact.com',false,false,3600),
+('bench-ai','Bench AI','bench','finance','AI bookkeeping service combining software with human accountants.','📚','https://bench.co',false,false,2400),
+('xero-ai','Xero AI','xero','finance','AI accounting software for small businesses with bank reconciliation.','🔵','https://xero.com',false,false,5200),
+('freshbooks-ai','FreshBooks AI','freshbooks','finance','AI invoicing and accounting software for freelancers.','💧','https://freshbooks.com',false,false,3800),
+('wave-ai','Wave AI','wave','finance','Free AI accounting and invoicing for small businesses.','🌊','https://waveapps.com',true,false,4200),
+('pilot-finance','Pilot AI','pilot-finance','finance','AI-powered bookkeeping and CFO services for startups.','🛫','https://pilot.com',false,false,2200),
+('ramp-ai','Ramp AI','ramp','finance','AI corporate card and expense management with smart insights.','💳','https://ramp.com',true,false,3600),
+('brex-ai','Brex AI','brex','finance','AI corporate card with spend management for startups.','💳','https://brex.com',false,false,3200),
+('divvy-ai','Divvy (BILL)','divvy','finance','AI expense management with real-time budget tracking.','💰','https://divvy.co',true,false,2800),
+
+-- ━━━ DATABASE & BACKEND AI ━━━
+('supabase-ai','Supabase AI','supabase','code','Open-source Firebase alternative with AI-powered SQL editor.','🔷','https://supabase.com',true,true,8200),
+('firebase-ai','Firebase AI','firebase','code','Google AI-powered backend platform with Gemini integration.','🔥','https://firebase.google.com',true,true,12000),
+('planetscale-ai','PlanetScale AI','planetscale','code','AI-powered serverless MySQL with instant schema changes.','🌐','https://planetscale.com',true,false,4200),
+('neon-ai','Neon AI','neon','code','AI-powered serverless Postgres with branching and auto-scaling.','🟢','https://neon.tech',true,false,3600),
+('railway-ai','Railway AI','railway','code','AI-powered deployment platform for apps and databases.','🚂','https://railway.app',true,false,3200),
+('render-ai','Render AI','render','code','AI cloud platform deploying web services and databases.','🔷','https://render.com',true,false,3800),
+('fly-io','Fly.io','fly-io','code','AI-powered edge computing platform running apps globally.','🪁','https://fly.io',true,false,2800),
+('convex-ai','Convex','convex','code','AI-powered reactive backend with real-time sync and functions.','🔷','https://convex.dev',true,false,2200),
+('upstash','Upstash','upstash','code','Serverless Redis and Kafka with per-request pricing.','🔷','https://upstash.com',true,false,2400),
+('prisma-db','Prisma AI','prisma-db','code','AI-powered next-gen ORM for Node.js and TypeScript.','🔷','https://prisma.io',true,false,4800),
+('hasura-ai','Hasura AI','hasura','code','AI-powered instant GraphQL APIs on your databases.','🔷','https://hasura.io',true,false,3200),
+('directus-ai','Directus AI','directus','code','Open-source AI data platform wrapping any SQL database with APIs.','🐰','https://directus.io',true,false,2600),
+('strapi-ai','Strapi AI','strapi','code','Open-source AI headless CMS with content type builder.','🔷','https://strapi.io',true,false,3800),
+('sanity-ai','Sanity AI','sanity','code','AI-powered content platform with structured content and GROQ.','🔷','https://sanity.io',true,false,3200),
+('contentful-ai','Contentful AI','contentful','code','AI headless CMS with composable content architecture.','🔷','https://contentful.com',true,false,4200),
+
+-- ━━━ EDUCATION PLATFORMS AI ━━━
+('skillshare-ai','Skillshare AI','skillshare','education','AI creative learning platform with thousands of classes.','🎓','https://skillshare.com',false,false,5200),
+('masterclass-ai','MasterClass AI','masterclass','education','AI-enhanced celebrity-taught online classes in every field.','🌟','https://masterclass.com',false,false,6800),
+('udemy-ai','Udemy AI','udemy','education','AI course marketplace with smart recommendations and learning paths.','📚','https://udemy.com',true,false,9200),
+('linkedin-learning','LinkedIn Learning AI','linkedin-learn','education','AI professional learning platform with skill assessments.','💼','https://linkedin.com/learning',false,false,7800),
+('codecademy-ai','Codecademy AI','codecademy','education','AI coding learning platform with interactive lessons and AI tutor.','💻','https://codecademy.com',true,false,6400),
+('treehouse','Treehouse AI','treehouse','education','AI tech education platform teaching web and mobile development.','🌳','https://teamtreehouse.com',false,false,3200),
+('datacamp-ai','DataCamp AI','datacamp','education','AI data science learning platform with hands-on practice.','📊','https://datacamp.com',true,false,4800),
+('edx-ai','edX AI','edx','education','AI-enhanced university courses from Harvard, MIT, and top schools.','🎓','https://edx.org',true,false,5600),
+('khan-academy','Khan Academy','khan','education','Free AI learning platform with courses in every subject.','🎓','https://khanacademy.org',true,true,12000),
+
+-- ━━━ PHOTO ENHANCEMENT AI ━━━
+('remini-2','Remini Video','remini-vid','image','AI video enhancer restoring old and low-quality videos to HD.','📹','https://remini.ai',true,false,4200),
+('topaz-photo','Topaz Photo AI','topaz-photo','image','AI photo processing combining denoise, sharpen, and upscale.','📸','https://topazlabs.com/topaz-photo-ai',false,false,5400),
+('luminar-neo','Luminar Neo AI','luminar-neo','image','AI photo editor with sky replacement and portrait enhancement.','☀️','https://skylum.com/luminar',false,false,3800),
+('adobe-enhance','Adobe Enhance Speech','adobe-enhance','audio','Free AI tool enhancing speech recordings to studio quality.','🎙️','https://podcast.adobe.com/enhance',true,false,4800),
+('dxo-ai','DxO PhotoLab AI','dxo','image','AI photo processor with DeepPRIME for RAW noise reduction.','📷','https://dxo.com',false,false,2400),
+('ai-sharpen','AI Sharpen','ai-sharpen','image','AI photo sharpening removing blur and improving detail.','🔍','https://topazlabs.com/sharpen-ai',false,false,2200),
+('denoise-ai','Denoise AI','denoise-ai','image','AI removing noise from photos while preserving details.','🌟','https://topazlabs.com/denoise-ai',false,false,2800),
+('gigapixel','Gigapixel AI','gigapixel','image','AI image upscaler enlarging photos up to 6x with detail.','🔍','https://topazlabs.com/gigapixel-ai',false,false,3600),
+('ai-color','Palette.fm','palette-fm','image','AI colorizing black and white photos with realistic colors.','🎨','https://palette.fm',true,false,2200),
+('vectorizer-ai','Vectorizer AI','vectorizer','image','AI converting raster images to clean SVG vector graphics.','📐','https://vectorizer.ai',true,false,2800),
+('upscayl','Upscayl','upscayl','image','Free open-source AI image upscaler for Linux, Mac, and Windows.','🖼️','https://upscayl.org',true,false,3200),
+
+-- ━━━ NO-CODE & LOW-CODE AI ━━━
+('bubble-ai','Bubble AI','bubble','code','AI no-code platform for building full-stack web applications.','🔵','https://bubble.io',true,false,6800),
+('webflow','Webflow','webflow','code','AI visual web design and development platform.','🔷','https://webflow.com',true,false,8200),
+('glide-ai','Glide AI','glide','code','AI no-code platform building apps from spreadsheets.','📱','https://glideapps.com',true,false,3200),
+('softr-ai','Softr AI','softr','code','AI no-code platform building apps from Airtable in minutes.','🔷','https://softr.io',true,false,2800),
+('retool-ai','Retool AI','retool','code','AI internal tool builder with drag-and-drop and custom code.','🔧','https://retool.com',true,false,4200),
+('appsmith','Appsmith AI','appsmith','code','Open-source AI platform for building internal tools.','🔷','https://appsmith.com',true,false,3200),
+('tooljet-ai','ToolJet','tooljet','code','Open-source AI low-code platform for internal applications.','🔧','https://tooljet.com',true,false,2400),
+('noodl','Noodl','noodl','code','AI-assisted visual full-stack app builder for developers.','🍜','https://noodl.net',true,false,1600),
+('dify','Dify','dify','code','Open-source LLM app development platform with visual workflow.','🔷','https://dify.ai',true,false,3800),
+('langflow','Langflow','langflow','code','Open-source AI visual framework for building RAG and agents.','🔗','https://langflow.org',true,false,2200),
+('buildship','BuildShip','buildship','code','AI no-code backend builder with visual workflow editor.','🚢','https://buildship.com',true,false,1800),
+('flutterflow-ai','FlutterFlow AI','flutterflow','code','AI no-code Flutter app builder with Firestore integration.','📱','https://flutterflow.io',true,false,4800),
+('adalo-ai','Adalo AI','adalo','code','AI no-code mobile app builder with database and logic.','📱','https://adalo.com',true,false,2200),
+('thunkable-ai','Thunkable AI','thunkable','code','AI drag-and-drop mobile app builder for iOS and Android.','📱','https://thunkable.com',true,false,2000),
+('appgyver','AppGyver (SAP)','appgyver','code','AI no-code platform for building enterprise mobile and web apps.','🔷','https://appgyver.com',true,false,2400)
+
+ON CONFLICT (id) DO NOTHING;

@@ -15,6 +15,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../widgets/moving_border_button.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onDone;
@@ -30,11 +31,9 @@ class _SplashScreenState extends State<SplashScreen>
   // ── Animation controllers ─────────────────────────────────
   late AnimationController _rainController;      // matrix rain loop
   late AnimationController _brandController;     // logo fade in
-  late AnimationController _glowController;      // pulsing glow
   late AnimationController _fadeOutController;   // exit fade
 
   late Animation<double> _brandFade;
-  late Animation<double> _glowPulse;
   late Animation<double> _fadeOut;
 
   bool _glitching = false;
@@ -64,14 +63,7 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeOut,
     );
 
-    // ── Glow: endless pulse ─────────────────────────────────
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
-    _glowPulse = Tween<double>(begin: 0.25, end: 0.55).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
+    // ── Fade out: before transition ─────────────────────────
 
     // ── Fade out: before transition ─────────────────────────
     _fadeOutController = AnimationController(
@@ -126,7 +118,6 @@ class _SplashScreenState extends State<SplashScreen>
     _transitionTimer?.cancel();
     _rainController.dispose();
     _brandController.dispose();
-    _glowController.dispose();
     _fadeOutController.dispose();
     super.dispose();
   }
@@ -213,7 +204,7 @@ class _SplashScreenState extends State<SplashScreen>
                     'Discover  •  Compare  •  Optimize',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
-                      color: const Color(0xFF00DCE8).withValues(alpha: 0.5),
+                      color: const Color(0xFF00DCE8).withOpacity(0.5),
                       fontWeight: FontWeight.w400,
                       letterSpacing: 2,
                     ),
@@ -257,35 +248,22 @@ class _SplashScreenState extends State<SplashScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         // ── Logo image with glow (Updated: Changed from Text to Svg) ──────────
-        AnimatedBuilder(
-          animation: _glowPulse,
-          builder: (_, __) => Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              color: Colors.black,
-              border: Border.all(
-                color: const Color(0xFF00DCE8).withValues(alpha: 0.4),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 220, 232, _glowPulse.value),
-                  blurRadius: 40,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: SvgPicture.asset(
-                  'assets/logo.svg',
-                  width: 48,
-                  height: 48,
-                  placeholderBuilder: (context) => const Text('⚡', style: TextStyle(fontSize: 32)),
-                ),
+        SynapMovingBorderButton(
+          borderRadius: 22,
+          width: 84,
+          height: 84,
+          padding: EdgeInsets.zero,
+          backgroundColor: Colors.black,
+          glowColor: const Color(0xFF00DCE8),
+          duration: const Duration(seconds: 3),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: SvgPicture.asset(
+                'assets/logo.svg',
+                width: 48,
+                height: 48,
+                placeholderBuilder: (context) => const Text('⚡', style: TextStyle(fontSize: 32)),
               ),
             ),
           ),
@@ -304,11 +282,11 @@ class _SplashScreenState extends State<SplashScreen>
                 ? [
                     const Shadow(color: Color(0xFFFF0080), offset: Offset(-3, 0), blurRadius: 0),
                     const Shadow(color: Color(0xFF00FFFF), offset: Offset(3, 0), blurRadius: 0),
-                    Shadow(color: const Color(0xFF00DCE8).withValues(alpha: 0.6), blurRadius: 40),
+                    Shadow(color: const Color(0xFF00DCE8).withOpacity(0.6), blurRadius: 40),
                   ]
                 : [
-                    Shadow(color: const Color(0xFF00DCE8).withValues(alpha: 0.5), blurRadius: 40),
-                    Shadow(color: const Color(0xFF00DCE8).withValues(alpha: 0.2), blurRadius: 80),
+                    Shadow(color: const Color(0xFF00DCE8).withOpacity(0.5), blurRadius: 40),
+                    Shadow(color: const Color(0xFF00DCE8).withOpacity(0.2), blurRadius: 80),
                   ],
           ),
           child: const Text('Synap'),

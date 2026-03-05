@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'auth_screen.dart';
+import '../../widgets/moving_border_button.dart';
 
 class SplashContent extends StatefulWidget {
   final VoidCallback onGetStarted;
@@ -57,12 +58,12 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
                   children: [
                     TextSpan(
                       text: 'Terms of Service',
-                      style: TextStyle(color: AuthColors.cyan.withValues(alpha: 0.6)),
+                      style: TextStyle(color: AuthColors.cyan.withOpacity(0.6)),
                     ),
                     const TextSpan(text: ' & '),
                     TextSpan(
                       text: 'Privacy Policy',
-                      style: TextStyle(color: AuthColors.cyan.withValues(alpha: 0.6)),
+                      style: TextStyle(color: AuthColors.cyan.withOpacity(0.6)),
                     ),
                   ],
                 ),
@@ -96,7 +97,7 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
                   height: 130,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AuthColors.cyan.withValues(alpha: 0.1)),
+                    border: Border.all(color: AuthColors.cyan.withOpacity(0.1)),
                   ),
                 ),
               ),
@@ -107,7 +108,7 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
                   height: 106,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AuthColors.cyan.withValues(alpha: 0.18)),
+                    border: Border.all(color: AuthColors.cyan.withOpacity(0.18)),
                   ),
                 ),
               ),
@@ -117,10 +118,10 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
                   color: Colors.black,
-                  border: Border.all(color: AuthColors.cyan.withValues(alpha: 0.2)),
+                  border: Border.all(color: AuthColors.cyan.withOpacity(0.2)),
                   boxShadow: [
                     BoxShadow(
-                      color: AuthColors.cyan.withValues(alpha: 0.12),
+                      color: AuthColors.cyan.withOpacity(0.12),
                       blurRadius: 40,
                     ),
                   ],
@@ -160,7 +161,7 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
   }
 }
 
-class _PremiumButton extends StatelessWidget {
+class _PremiumButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isPrimary;
@@ -174,54 +175,63 @@ class _PremiumButton extends StatelessWidget {
   });
 
   @override
+  State<_PremiumButton> createState() => _PremiumButtonState();
+}
+
+class _PremiumButtonState extends State<_PremiumButton> {
+  bool _animating = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: isPrimary
-            ? const LinearGradient(
-                colors: [Color(0xFF00D2F0), Color(0xFF009AB8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: !isPrimary ? Colors.white.withValues(alpha: 0.04) : null,
-        border: !isPrimary ? Border.all(color: Colors.white.withValues(alpha: 0.08)) : null,
-        boxShadow: isPrimary
-            ? [
-                BoxShadow(
-                  color: AuthColors.cyan.withValues(alpha: 0.28),
-                  blurRadius: 32,
-                  offset: const Offset(0, 8),
-                ),
-              ]
-            : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
+    return SynapMovingBorderButton(
+      onTap: () {
+        setState(() => _animating = true);
+        widget.onPressed();
+      },
+      isAnimating: _animating,
+      borderRadius: 18,
+      backgroundColor: widget.isPrimary ? const Color(0xFF00D2F0) : Colors.white.withOpacity(0.04),
+      glowColor: AuthColors.cyan,
+      padding: EdgeInsets.zero,
+      child: Container(
+        width: double.infinity,
+        height: 56,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, color: AuthColors.text.withValues(alpha: 0.7), size: 18),
-                  const SizedBox(width: 10),
-                ],
-                Text(
-                  text,
-                  style: GoogleFonts.syne(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: isPrimary ? AuthColors.deep : AuthColors.text.withValues(alpha: 0.7),
+          gradient: widget.isPrimary
+              ? const LinearGradient(
+                  colors: [Color(0xFF00D2F0), Color(0xFF009AB8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          boxShadow: widget.isPrimary
+              ? [
+                  BoxShadow(
+                    color: AuthColors.cyan.withOpacity(0.28),
+                    blurRadius: 32,
+                    offset: const Offset(0, 8),
                   ),
-                ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.icon != null) ...[
+                Icon(widget.icon, color: AuthColors.text.withOpacity(0.7), size: 18),
+                const SizedBox(width: 10),
               ],
-            ),
+              Text(
+                widget.text,
+                style: GoogleFonts.syne(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: widget.isPrimary ? AuthColors.deep : AuthColors.text.withOpacity(0.7),
+                ),
+              ),
+            ],
           ),
         ),
       ),

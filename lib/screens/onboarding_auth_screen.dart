@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../widgets/moving_border_button.dart';
 
 // ── COLORS ───────────────────────────────────────────────────
 class OnboardingColors {
@@ -95,14 +97,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
             ),
             _AuroraDrift(
               controller: _auroraController,
-              color: OnboardingColors.cyan.withValues(alpha: 0.12),
+              color: OnboardingColors.cyan.withOpacity(0.12),
               baseOffset: const Offset(-50, -50),
               driftOffset: const Offset(60, 40),
               size: const Size(500, 300),
             ),
             _AuroraDrift(
               controller: _auroraController,
-              color: OnboardingColors.teal.withValues(alpha: 0.07),
+              color: OnboardingColors.teal.withOpacity(0.07),
               baseOffset: const Offset(50, 400),
               driftOffset: const Offset(-50, -60),
               size: const Size(400, 400),
@@ -196,7 +198,7 @@ class _StarPainter extends CustomPainter {
 
     for (var star in stars) {
       final alpha = star.alpha * (0.6 + 0.4 * sin(time * 2 * pi * star.speed * 10));
-      paint.color = const Color(0xFFB4E6F5).withValues(alpha: alpha.clamp(0.0, 1.0));
+      paint.color = const Color(0xFFB4E6F5).withOpacity(alpha.clamp(0.0, 1.0));
       canvas.drawCircle(
         Offset(star.x * size.width, star.y * size.height),
         star.size,
@@ -225,6 +227,7 @@ class _SplashView extends StatefulWidget {
 
 class _SplashViewState extends State<_SplashView> with SingleTickerProviderStateMixin {
   late AnimationController _logoController;
+  int _activeIndex = -1;
 
   @override
   void initState() {
@@ -251,13 +254,23 @@ class _SplashViewState extends State<_SplashView> with SingleTickerProviderState
             children: [
               _PremiumButton(
                 text: 'Get Started',
-                onPressed: widget.onGetStarted,
+                isAnimating: _activeIndex == 0,
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  setState(() => _activeIndex = 0);
+                  Future.delayed(const Duration(milliseconds: 400), widget.onGetStarted);
+                },
                 isPrimary: true,
               ),
               const SizedBox(height: 12),
               _PremiumButton(
                 text: 'Continue as Guest',
-                onPressed: widget.onContinueGuest,
+                isAnimating: _activeIndex == 1,
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  setState(() => _activeIndex = 1);
+                  Future.delayed(const Duration(milliseconds: 400), widget.onContinueGuest);
+                },
                 isPrimary: false,
                 icon: Icons.person_outline,
               ),
@@ -268,12 +281,12 @@ class _SplashViewState extends State<_SplashView> with SingleTickerProviderState
                   children: [
                     TextSpan(
                       text: 'Terms of Service',
-                      style: TextStyle(color: OnboardingColors.cyan.withValues(alpha: 0.6)),
+                      style: TextStyle(color: OnboardingColors.cyan.withOpacity(0.6)),
                     ),
                     const TextSpan(text: ' & '),
                     TextSpan(
                       text: 'Privacy Policy',
-                      style: TextStyle(color: OnboardingColors.cyan.withValues(alpha: 0.6)),
+                      style: TextStyle(color: OnboardingColors.cyan.withOpacity(0.6)),
                     ),
                   ],
                 ),
@@ -307,7 +320,7 @@ class _SplashViewState extends State<_SplashView> with SingleTickerProviderState
                   height: 130,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.1)),
+                    border: Border.all(color: OnboardingColors.cyan.withOpacity(0.1)),
                   ),
                 ),
               ),
@@ -318,29 +331,37 @@ class _SplashViewState extends State<_SplashView> with SingleTickerProviderState
                   height: 106,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.18)),
+                    border: Border.all(color: OnboardingColors.cyan.withOpacity(0.18)),
                   ),
                 ),
               ),
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  color: Colors.black,
-                  border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.2)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: OnboardingColors.cyan.withValues(alpha: 0.12),
-                      blurRadius: 40,
+              SynapMovingBorderButton(
+                isAnimating: true,
+                borderRadius: 36,
+                borderWidth: 2,
+                glowColor: OnboardingColors.cyan,
+                backgroundColor: Colors.transparent,
+                padding: EdgeInsets.zero,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    color: Colors.black,
+                    border: Border.all(color: OnboardingColors.cyan.withOpacity(0.2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: OnboardingColors.cyan.withOpacity(0.12),
+                        blurRadius: 40,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/logo.svg',
+                      width: 44,
+                      height: 44,
                     ),
-                  ],
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/logo.svg',
-                    width: 44,
-                    height: 44,
                   ),
                 ),
               ),
@@ -376,63 +397,70 @@ class _PremiumButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isPrimary;
   final IconData? icon;
+  final bool isAnimating;
 
   const _PremiumButton({
     required this.text,
     required this.onPressed,
     required this.isPrimary,
     this.icon,
+    this.isAnimating = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: isPrimary
-            ? const LinearGradient(
-                colors: [Color(0xFF00D2F0), Color(0xFF009AB8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: !isPrimary ? Colors.white.withValues(alpha: 0.04) : null,
-        border: !isPrimary ? Border.all(color: Colors.white.withValues(alpha: 0.08)) : null,
-        boxShadow: isPrimary
-            ? [
-                BoxShadow(
-                  color: OnboardingColors.cyan.withValues(alpha: 0.28),
-                  blurRadius: 32,
-                  offset: const Offset(0, 8),
-                ),
-              ]
-            : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
+    final bgColor = isPrimary 
+        ? const Color(0xFF003C5A) // Deep teal/blue for primary
+        : Colors.white.withOpacity(0.04);
+
+    return SynapMovingBorderButton(
+      onTap: onPressed,
+      isAnimating: isAnimating,
+      backgroundColor: isPrimary ? const Color(0xFF041824) : const Color(0xFF020B12),
+      glowColor: isPrimary ? OnboardingColors.cyan : Colors.white.withOpacity(0.3),
+      borderRadius: 18,
+      padding: EdgeInsets.zero,
+      child: Container(
+        width: double.infinity,
+        height: 56,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, color: OnboardingColors.text.withValues(alpha: 0.7), size: 18),
-                  const SizedBox(width: 10),
-                ],
-                Text(
-                  text,
-                  style: GoogleFonts.syne(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: isPrimary ? OnboardingColors.deep : OnboardingColors.text.withValues(alpha: 0.7),
+          gradient: isPrimary
+              ? const LinearGradient(
+                  colors: [Color(0xFF00D2F0), Color(0xFF009AB8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: !isPrimary ? Colors.white.withOpacity(0.04) : null,
+          border: !isPrimary ? Border.all(color: Colors.white.withOpacity(0.08)) : null,
+          boxShadow: isPrimary
+              ? [
+                  BoxShadow(
+                    color: OnboardingColors.cyan.withOpacity(0.28),
+                    blurRadius: 32,
+                    offset: const Offset(0, 8),
                   ),
-                ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, color: OnboardingColors.text.withOpacity(0.7), size: 18),
+                const SizedBox(width: 10),
               ],
-            ),
+              Text(
+                text,
+                style: GoogleFonts.syne(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: isPrimary ? OnboardingColors.deep : OnboardingColors.text.withOpacity(0.7),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -452,6 +480,7 @@ class _AuthView extends StatefulWidget {
 class _AuthViewState extends State<_AuthView> with SingleTickerProviderStateMixin {
   bool _isLogin = true;
   late AnimationController _cardController;
+  int _loadingIndex = -1; // 0: Google, 1: Apple, 2: Main
 
   @override
   void initState() {
@@ -499,7 +528,7 @@ class _AuthViewState extends State<_AuthView> with SingleTickerProviderStateMixi
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: Colors.black,
-        border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.25)),
+        border: Border.all(color: OnboardingColors.cyan.withOpacity(0.25)),
       ),
       child: Center(
         child: SvgPicture.asset('assets/logo.svg', width: 14),
@@ -524,11 +553,11 @@ class _AuthViewState extends State<_AuthView> with SingleTickerProviderStateMixi
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF04101A).withValues(alpha: 0.75),
-                    const Color(0xFF020A12).withValues(alpha: 0.85),
+                    const Color(0xFF04101A).withOpacity(0.75),
+                    const Color(0xFF020A12).withOpacity(0.85),
                   ],
                 ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.07), width: 0.5),
+                border: Border.all(color: Colors.white.withOpacity(0.07), width: 0.5),
               ),
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -540,28 +569,47 @@ class _AuthViewState extends State<_AuthView> with SingleTickerProviderStateMixi
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(child: Container(width: 40, height: 4, margin: const EdgeInsets.symmetric(vertical: 18), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(2)))),
+                          Center(child: Container(width: 40, height: 4, margin: const EdgeInsets.symmetric(vertical: 18), decoration: BoxDecoration(color: Colors.white.withOpacity(0.08), borderRadius: BorderRadius.circular(2)))),
                           Text.rich(TextSpan(text: _isLogin ? 'Welcome ' : 'Create ', children: [TextSpan(text: _isLogin ? 'back' : 'account', style: TextStyle(color: OnboardingColors.cyan))]), style: GoogleFonts.syne(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
                           const SizedBox(height: 6),
                           Text(_isLogin ? 'Sign in to your Synap account' : 'Join 50,000+ AI explorers', style: GoogleFonts.dmSans(fontSize: 12, color: OnboardingColors.muted)),
                           const SizedBox(height: 22),
                           _AuthSegment(isLogin: _isLogin, onChanged: (v) => setState(() => _isLogin = v)),
                           const SizedBox(height: 22),
-                          Row(
-                            children: [
-                              Expanded(child: _SocialButton(text: 'Google', icon: 'G', onTap: widget.onSuccess)),
-                              const SizedBox(width: 10),
-                              Expanded(child: _SocialButton(text: 'Apple', icon: 'A', onTap: widget.onSuccess)),
-                            ],
-                          ),
+                              _SocialButton(
+                                text: 'Continue with Google', 
+                                iconPath: 'assets/google_logo.svg', 
+                                isAnimating: _loadingIndex == 0,
+                                onTap: () {
+                                  HapticFeedback.mediumImpact();
+                                  setState(() => _loadingIndex = 0);
+                                  Future.delayed(const Duration(milliseconds: 500), widget.onSuccess);
+                                },
+                              ),
                           const SizedBox(height: 18),
                           _buildDivider(),
                           const SizedBox(height: 18),
                           _AuthFields(isLogin: _isLogin),
                           const SizedBox(height: 12),
-                          _PremiumButton(text: _isLogin ? 'Sign In' : 'Create Account', onPressed: widget.onSuccess, isPrimary: true),
+                          _PremiumButton(
+                            text: _isLogin ? 'Sign In' : 'Create Account', 
+                            isPrimary: true,
+                            isAnimating: _loadingIndex == 2,
+                            onPressed: () {
+                              HapticFeedback.vibrate();
+                              setState(() => _loadingIndex = 2);
+                              Future.delayed(const Duration(milliseconds: 500), widget.onSuccess);
+                            },
+                          ),
                           const SizedBox(height: 12),
-                          _GuestRow(onTap: () => widget.onSuccess()),
+                          _GuestRow(
+                            isAnimating: _loadingIndex == 3,
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              setState(() => _loadingIndex = 3);
+                              Future.delayed(const Duration(milliseconds: 500), widget.onSuccess);
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -578,9 +626,9 @@ class _AuthViewState extends State<_AuthView> with SingleTickerProviderStateMixi
   Widget _buildDivider() {
     return Row(
       children: [
-        Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, Colors.white.withValues(alpha: 0.06), Colors.transparent])))),
+        Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, Colors.white.withOpacity(0.06), Colors.transparent])))),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text('OR CONTINUE WITH EMAIL', style: TextStyle(fontSize: 10, color: OnboardingColors.dead, letterSpacing: 0.5))),
-        Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, Colors.white.withValues(alpha: 0.06), Colors.transparent])))),
+        Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, Colors.white.withOpacity(0.06), Colors.transparent])))),
       ],
     );
   }
@@ -599,8 +647,8 @@ class _IconButton extends StatelessWidget {
         width: 38, height: 38,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: Colors.white.withValues(alpha: 0.04),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+          color: Colors.white.withOpacity(0.04),
+          border: Border.all(color: Colors.white.withOpacity(0.07)),
         ),
         child: Icon(icon, color: OnboardingColors.muted, size: 18),
       ),
@@ -618,8 +666,8 @@ class _AuthSegment extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.035),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        color: Colors.white.withOpacity(0.035),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Stack(
@@ -634,17 +682,17 @@ class _AuthSegment extends StatelessWidget {
                 height: 38,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(11),
-                  gradient: LinearGradient(colors: [OnboardingColors.cyan.withValues(alpha: 0.18), OnboardingColors.cyan.withValues(alpha: 0.08)]),
-                  border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.25)),
-                  boxShadow: [BoxShadow(color: OnboardingColors.cyan.withValues(alpha: 0.08), blurRadius: 20)],
+                  gradient: LinearGradient(colors: [OnboardingColors.cyan.withOpacity(0.18), OnboardingColors.cyan.withOpacity(0.08)]),
+                  border: Border.all(color: OnboardingColors.cyan.withOpacity(0.25)),
+                  boxShadow: [BoxShadow(color: OnboardingColors.cyan.withOpacity(0.08), blurRadius: 20)],
                 ),
               ),
             ),
           ),
           Row(
             children: [
-              Expanded(child: GestureDetector(onTap: () => onChanged(true), child: Container(height: 38, alignment: Alignment.center, child: Text('Sign In', style: TextStyle(color: isLogin ? OnboardingColors.cyan : OnboardingColors.muted.withValues(alpha: 0.4), fontWeight: FontWeight.bold, fontSize: 13))))),
-              Expanded(child: GestureDetector(onTap: () => onChanged(false), child: Container(height: 38, alignment: Alignment.center, child: Text('Sign Up', style: TextStyle(color: !isLogin ? OnboardingColors.cyan : OnboardingColors.muted.withValues(alpha: 0.4), fontWeight: FontWeight.bold, fontSize: 13))))),
+              Expanded(child: GestureDetector(onTap: () => onChanged(true), child: Container(height: 38, alignment: Alignment.center, child: Text('Sign In', style: TextStyle(color: isLogin ? OnboardingColors.cyan : OnboardingColors.muted.withOpacity(0.4), fontWeight: FontWeight.bold, fontSize: 13))))),
+              Expanded(child: GestureDetector(onTap: () => onChanged(false), child: Container(height: 38, alignment: Alignment.center, child: Text('Sign Up', style: TextStyle(color: !isLogin ? OnboardingColors.cyan : OnboardingColors.muted.withOpacity(0.4), fontWeight: FontWeight.bold, fontSize: 13))))),
             ],
           ),
         ],
@@ -655,27 +703,42 @@ class _AuthSegment extends StatelessWidget {
 
 class _SocialButton extends StatelessWidget {
   final String text;
-  final String icon;
+  final String iconPath;
   final VoidCallback onTap;
-  const _SocialButton({required this.text, required this.icon, required this.onTap});
+  final bool isAnimating;
+
+  const _SocialButton({
+    required this.text,
+    required this.iconPath,
+    required this.onTap,
+    this.isAnimating = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.07)),
-        backgroundColor: Colors.white.withValues(alpha: 0.035),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    return SynapMovingBorderButton(
+      onTap: onTap,
+      isAnimating: isAnimating,
+      backgroundColor: const Color(0xFF020B12),
+      glowColor: OnboardingColors.cyan.withOpacity(0.5),
+      borderRadius: 15,
+      padding: EdgeInsets.zero,
+      child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(icon, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(width: 8),
-          Text(text, style: GoogleFonts.dmSans(color: OnboardingColors.text.withValues(alpha: 0.75), fontWeight: FontWeight.w600, fontSize: 13)),
-        ],
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.white.withOpacity(0.035),
+          border: Border.all(color: Colors.white.withOpacity(0.07)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(iconPath, width: 18),
+            const SizedBox(width: 10),
+            Text(text, style: GoogleFonts.dmSans(color: OnboardingColors.text.withOpacity(0.75), fontWeight: FontWeight.w600, fontSize: 13)),
+          ],
+        ),
       ),
     );
   }
@@ -709,7 +772,7 @@ class _AuthFields extends StatelessWidget {
         if (isLogin) ...[
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton(onPressed: () {}, child: Text('Forgot password?', style: TextStyle(color: OnboardingColors.cyan.withValues(alpha: 0.45), fontSize: 11))),
+            child: TextButton(onPressed: () {}, child: Text('Forgot password?', style: TextStyle(color: OnboardingColors.cyan.withOpacity(0.45), fontSize: 11))),
           ),
         ],
       ],
@@ -728,8 +791,8 @@ class _InputField extends StatelessWidget {
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        color: Colors.white.withOpacity(0.04),
+        border: Border.all(color: Colors.white.withOpacity(0.07)),
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
@@ -737,8 +800,8 @@ class _InputField extends StatelessWidget {
         style: const TextStyle(color: Colors.white, fontSize: 14),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: OnboardingColors.muted.withValues(alpha: 0.3), size: 18),
-          hintStyle: TextStyle(color: OnboardingColors.muted.withValues(alpha: 0.4), fontSize: 13),
+          prefixIcon: Icon(icon, color: OnboardingColors.muted.withOpacity(0.3), size: 18),
+          hintStyle: TextStyle(color: OnboardingColors.muted.withOpacity(0.4), fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         ),
@@ -749,24 +812,31 @@ class _InputField extends StatelessWidget {
 
 class _GuestRow extends StatelessWidget {
   final VoidCallback onTap;
-  const _GuestRow({required this.onTap});
+  final bool isAnimating;
+
+  const _GuestRow({required this.onTap, this.isAnimating = false});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return SynapMovingBorderButton(
       onTap: onTap,
+      isAnimating: isAnimating,
+      backgroundColor: Colors.white.withOpacity(0.02),
+      glowColor: OnboardingColors.cyan.withOpacity(0.3),
+      borderRadius: 14,
+      padding: EdgeInsets.zero,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.055)),
-          color: Colors.white.withValues(alpha: 0.02),
+          border: Border.all(color: Colors.white.withOpacity(0.055)),
+          color: Colors.white.withOpacity(0.02),
         ),
         child: Row(
           children: [
             const Icon(Icons.person_outline, color: OnboardingColors.dead, size: 14),
             const SizedBox(width: 8),
-            Text('Continue without account', style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w500, color: OnboardingColors.dead.withValues(alpha: 0.5))),
+            Text('Continue without account', style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w500, color: OnboardingColors.dead.withOpacity(0.5))),
             const Spacer(),
             const Icon(Icons.arrow_forward, color: OnboardingColors.dead, size: 12),
           ],
@@ -814,15 +884,15 @@ class _GuestView extends StatelessWidget {
         children: [
           Container(
             width: 130, height: 130,
-            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.15))),
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: OnboardingColors.cyan.withOpacity(0.15))),
           ),
           Container(
             width: 110, height: 110,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [OnboardingColors.cyan.withValues(alpha: 0.12), const Color(0xFF001E2D).withValues(alpha: 0.8), OnboardingColors.teal.withValues(alpha: 0.06)]),
-              border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.2)),
-              boxShadow: [BoxShadow(color: OnboardingColors.cyan.withValues(alpha: 0.12), blurRadius: 60)],
+              gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [OnboardingColors.cyan.withOpacity(0.12), const Color(0xFF001E2D).withOpacity(0.8), OnboardingColors.teal.withOpacity(0.06)]),
+              border: Border.all(color: OnboardingColors.cyan.withOpacity(0.2)),
+              boxShadow: [BoxShadow(color: OnboardingColors.cyan.withOpacity(0.12), blurRadius: 60)],
             ),
             child: const Center(child: Text('👤', style: TextStyle(fontSize: 42))),
           ),
@@ -859,15 +929,15 @@ class _FeatCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(colors: [isLocked ? OnboardingColors.cyan.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.05), Colors.white.withValues(alpha: 0.02)]),
-        border: Border.all(color: isLocked ? OnboardingColors.cyan.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.07)),
+        gradient: LinearGradient(colors: [isLocked ? OnboardingColors.cyan.withOpacity(0.08) : Colors.white.withOpacity(0.05), Colors.white.withOpacity(0.02)]),
+        border: Border.all(color: isLocked ? OnboardingColors.cyan.withOpacity(0.2) : Colors.white.withOpacity(0.07)),
       ),
       child: Row(
         children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: OnboardingColors.cyan.withValues(alpha: 0.08), border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.15)), borderRadius: BorderRadius.circular(13)), child: Center(child: Text(icon, style: const TextStyle(fontSize: 20)))),
+          Container(width: 44, height: 44, decoration: BoxDecoration(color: OnboardingColors.cyan.withOpacity(0.08), border: Border.all(color: OnboardingColors.cyan.withOpacity(0.15)), borderRadius: BorderRadius.circular(13)), child: Center(child: Text(icon, style: const TextStyle(fontSize: 20)))),
           const SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: GoogleFonts.syne(fontSize: 13, fontWeight: FontWeight.w700, color: isLocked ? OnboardingColors.cyan : Colors.white)), Text(sub, style: GoogleFonts.dmSans(fontSize: 11, color: OnboardingColors.muted))])),
-          if (isLocked) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: OnboardingColors.cyan.withValues(alpha: 0.08), border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.2)), borderRadius: BorderRadius.circular(7)), child: const Text('PRO', style: TextStyle(color: OnboardingColors.cyan, fontSize: 10, fontWeight: FontWeight.bold))),
+          if (isLocked) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: OnboardingColors.cyan.withOpacity(0.08), border: Border.all(color: OnboardingColors.cyan.withOpacity(0.2)), borderRadius: BorderRadius.circular(7)), child: const Text('PRO', style: TextStyle(color: OnboardingColors.cyan, fontSize: 10, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -916,7 +986,7 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
                   child: Container(
                     width: 80 + t * 270,
                     height: 80 + t * 270,
-                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.15))),
+                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: OnboardingColors.cyan.withOpacity(0.15))),
                   ),
                 );
               },
@@ -925,13 +995,20 @@ class _SuccessViewState extends State<_SuccessView> with SingleTickerProviderSta
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(width: 90, height: 90, decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [OnboardingColors.cyan.withValues(alpha: 0.15), OnboardingColors.teal.withValues(alpha: 0.08)]), border: Border.all(color: OnboardingColors.cyan.withValues(alpha: 0.35)), boxShadow: [BoxShadow(color: OnboardingColors.cyan.withValues(alpha: 0.2), blurRadius: 60)]), child: const Center(child: Text('✦', style: TextStyle(fontSize: 36, color: Colors.white)))),
+              Container(width: 90, height: 90, decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [OnboardingColors.cyan.withOpacity(0.15), OnboardingColors.teal.withOpacity(0.08)]), border: Border.all(color: OnboardingColors.cyan.withOpacity(0.35)), boxShadow: [BoxShadow(color: OnboardingColors.cyan.withOpacity(0.2), blurRadius: 60)]), child: const Center(child: Text('✦', style: TextStyle(fontSize: 36, color: Colors.white)))),
               const SizedBox(height: 24),
               Text("You're in!", style: GoogleFonts.syne(fontSize: 30, fontWeight: FontWeight.w800, color: Colors.white)),
               const SizedBox(height: 8),
               Text('Opening Synap...', style: GoogleFonts.dmSans(fontSize: 13, color: OnboardingColors.muted)),
-              const SizedBox(height: 12),
-              Row(mainAxisSize: MainAxisSize.min, children: List.generate(3, (i) => _DotAnim(delay: i * 0.15))),
+              const SizedBox(height: 24),
+              SynapMovingBorderButton(
+                onTap: () => Navigator.pushReplacementNamed(context, '/'),
+                borderRadius: 12,
+                backgroundColor: OnboardingColors.cyan.withOpacity(0.1),
+                glowColor: OnboardingColors.cyan,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                child: const Text('Enter Synap →', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
         ],
@@ -955,6 +1032,6 @@ class _DotAnimState extends State<_DotAnim> with SingleTickerProviderStateMixin 
   @override void dispose() { _c.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(animation: _c, builder: (context, child) => Container(width: 6, height: 6, margin: const EdgeInsets.symmetric(horizontal: 3), decoration: BoxDecoration(shape: BoxShape.circle, color: OnboardingColors.cyan.withValues(alpha: sin((_c.value + widget.delay) * pi).clamp(0.2, 1.0)))));
+    return AnimatedBuilder(animation: _c, builder: (context, child) => Container(width: 6, height: 6, margin: const EdgeInsets.symmetric(horizontal: 3), decoration: BoxDecoration(shape: BoxShape.circle, color: OnboardingColors.cyan.withOpacity(sin((_c.value + widget.delay) * pi).clamp(0.2, 1.0)))));
   }
 }

@@ -37,9 +37,9 @@ class GuestScreen extends StatelessWidget {
       width: 90, height: 90,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AuthColors.cyan.withValues(alpha: 0.1),
-        border: Border.all(color: AuthColors.cyan.withValues(alpha: 0.2), width: 2),
-        boxShadow: [BoxShadow(color: AuthColors.cyan.withValues(alpha: 0.15), blurRadius: 30)],
+        color: AuthColors.cyan.withOpacity(0.1),
+        border: Border.all(color: AuthColors.cyan.withOpacity(0.2), width: 2),
+        boxShadow: [BoxShadow(color: AuthColors.cyan.withOpacity(0.15), blurRadius: 30)],
       ),
       child: const Center(child: Icon(Icons.person_outline, color: AuthColors.cyan, size: 40)),
     );
@@ -71,8 +71,8 @@ class _IconButton extends StatelessWidget {
         width: 38, height: 38,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: Colors.white.withValues(alpha: 0.04),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+          color: Colors.white.withOpacity(0.04),
+          border: Border.all(color: Colors.white.withOpacity(0.07)),
         ),
         child: Icon(icon, color: AuthColors.muted, size: 18),
       ),
@@ -92,12 +92,12 @@ class _FeatRow extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withValues(alpha: 0.03),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        color: Colors.white.withOpacity(0.03),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
       ),
       child: Row(
         children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(icon, style: const TextStyle(fontSize: 18)))),
+          Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(icon, style: const TextStyle(fontSize: 18)))),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -132,8 +132,8 @@ class _GuestButton extends StatelessWidget {
         gradient: isPrimary
             ? const LinearGradient(colors: [Color(0xFF00D2F0), Color(0xFF009AB8)])
             : null,
-        color: !isPrimary ? Colors.white.withValues(alpha: 0.04) : null,
-        border: !isPrimary ? Border.all(color: Colors.white.withValues(alpha: 0.08)) : null,
+        color: !isPrimary ? Colors.white.withOpacity(0.04) : null,
+        border: !isPrimary ? Border.all(color: Colors.white.withOpacity(0.08)) : null,
       ),
       child: Material(
         color: Colors.transparent,
@@ -141,7 +141,7 @@ class _GuestButton extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(18),
           child: Center(
-            child: Text(text, style: GoogleFonts.syne(fontSize: 15, fontWeight: FontWeight.w700, color: isPrimary ? AuthColors.deep : AuthColors.text.withValues(alpha: 0.7))),
+            child: Text(text, style: GoogleFonts.syne(fontSize: 15, fontWeight: FontWeight.w700, color: isPrimary ? AuthColors.deep : AuthColors.text.withOpacity(0.7))),
           ),
         ),
       ),

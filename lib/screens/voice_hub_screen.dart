@@ -14,187 +14,17 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/tracker/tracker_bloc.dart';
 import '../blocs/tracker/tracker_event.dart';
+import '../widgets/ai_loader.dart';
+import '../services/user_profile_service.dart';
 
-// ── Tool result model ─────────────────────────────────────────
-class ToolResult {
-  final String name;
-  final String emoji;
-  final String description;
-  final String category;
-  final bool isFree;
-  final String url;
-  const ToolResult({
-    required this.name, required this.emoji,
-    required this.description, required this.category,
-    required this.isFree, required this.url,
-  });
-}
-
-// ── Knowledge base ────────────────────────────────────────────
-class VoiceKB {
-  static String getResponse(String query) {
-    final q = query.toLowerCase();
-    if (_matches(q, ['video','edit','banao','banaun','reels','shorts','clip'])) {
-      return 'Video editing ke liye yeh free tools best hain:';
-    }
-    if (_matches(q, ['image','photo','picture','tasveer','generate','banana','draw','design'])) {
-      return 'Free image generation ke liye yeh tools try karo:';
-    }
-    if (_matches(q, ['code','coding','program','developer','script','develop'])) {
-      return 'Coding ke liye yeh best free AI tools hain:';
-    }
-    if (_matches(q, ['music','song','audio','gana','beat','sound'])) {
-      return 'Free music generation ke liye:';
-    }
-    if (_matches(q, ['chatgpt','gpt','alternative','replace','jaisa','jaisi'])) {
-      return 'ChatGPT ke best free alternatives:';
-    }
-    if (_matches(q, ['resume','cv','job','interview','naukri'])) {
-      return 'Resume aur job applications ke liye:';
-    }
-    if (_matches(q, ['write','writing','likhna','content','blog','article'])) {
-      return 'Writing ke liye best free AI tools:';
-    }
-    if (_matches(q, ['present','presentation','slides','deck'])) {
-      return 'Presentations banane ke liye:';
-    }
-    if (_matches(q, ['search','find','dhundh','research','information'])) {
-      return 'Research aur search ke liye:';
-    }
-    if (_matches(q, ['voice','speech','tts','text to speech','bolna'])) {
-      return 'Voice aur text-to-speech ke liye:';
-    }
-    return 'Yeh popular free AI tools hain jo help kar sakte hain:';
-  }
-
-  static List<ToolResult> getTools(String query) {
-    final q = query.toLowerCase();
-    if (_matches(q, ['video','edit','reels','shorts','clip','banao'])) {
-      return _videoTools;
-    }
-    if (_matches(q, ['image','photo','picture','tasveer','generate','draw','design'])) {
-      return _imageTools;
-    }
-    if (_matches(q, ['code','coding','program','developer','script'])) {
-      return _codeTools;
-    }
-    if (_matches(q, ['music','song','audio','gana','beat'])) {
-      return _musicTools;
-    }
-    if (_matches(q, ['chatgpt','gpt','alternative','replace'])) {
-      return _chatTools;
-    }
-    if (_matches(q, ['resume','cv','job','naukri'])) {
-      return _resumeTools;
-    }
-    if (_matches(q, ['write','writing','likhna','content','blog'])) {
-      return _writingTools;
-    }
-    if (_matches(q, ['present','presentation','slides'])) {
-      return _presentationTools;
-    }
-    if (_matches(q, ['search','find','dhundh','research'])) {
-      return _searchTools;
-    }
-    if (_matches(q, ['voice','speech','tts','bolna'])) {
-      return _voiceTools;
-    }
-    return _defaultTools;
-  }
-
-  static bool _matches(String q, List<String> keywords) =>
-      keywords.any((k) => q.contains(k));
-
-  // ── Tool lists ──────────────────────────────────────────────
-  static const _videoTools = [
-    ToolResult(name:'CapCut AI',    emoji:'✂️', isFree:true,  category:'Video', url:'capcut.com',    description:'Free AI video editing, auto-captions, effects. Best for Reels & Shorts.'),
-    ToolResult(name:'Runway Gen-3', emoji:'🎬', isFree:false, category:'Video', url:'runwayml.com',  description:'125 free credits/month. AI video generation from text.'),
-    ToolResult(name:'Pika Labs',    emoji:'🎞️', isFree:false, category:'Video', url:'pika.art',      description:'250 free credits. Text to video, easy to use.'),
-  ];
-
-  static const _imageTools = [
-    ToolResult(name:'Ideogram',        emoji:'🎨', isFree:true,  category:'Image', url:'ideogram.ai',     description:'Unlimited free images with perfect text rendering.'),
-    ToolResult(name:'Adobe Firefly',   emoji:'🔥', isFree:false, category:'Image', url:'firefly.adobe.com',description:'25 free credits/month. Commercially safe AI images.'),
-    ToolResult(name:'Microsoft Designer',emoji:'💎',isFree:true, category:'Image', url:'designer.microsoft.com',description:'Free AI image generation using DALL-E 3.'),
-  ];
-
-  static const _codeTools = [
-    ToolResult(name:'Cursor AI',       emoji:'⌨️', isFree:false, category:'Code', url:'cursor.sh',       description:'2000 free completions/month. Best AI code editor available.'),
-    ToolResult(name:'GitHub Copilot',  emoji:'🐙', isFree:false, category:'Code', url:'github.com',      description:'Free for students. AI code completion in VS Code and more.'),
-    ToolResult(name:'Replit AI',       emoji:'💻', isFree:true,  category:'Code', url:'replit.com',      description:'Free AI coding assistant with cloud IDE. No setup needed.'),
-  ];
-
-  static const _musicTools = [
-    ToolResult(name:'Suno AI',    emoji:'🎵', isFree:false, category:'Audio', url:'suno.com',     description:'50 free credits/day. Create full songs with lyrics from text.'),
-    ToolResult(name:'Udio',       emoji:'🎶', isFree:false, category:'Audio', url:'udio.com',     description:'1200 free credits/month. High quality AI music generation.'),
-    ToolResult(name:'Soundraw',   emoji:'🎸', isFree:false, category:'Audio', url:'soundraw.io',  description:'5 free songs/day. Royalty-free background music.'),
-  ];
-
-  static const _chatTools = [
-    ToolResult(name:'Claude',      emoji:'✦',  isFree:false, category:'Chat', url:'claude.ai',         description:'40 free messages/day. Best for long documents and analysis.'),
-    ToolResult(name:'Gemini',      emoji:'♊',  isFree:true,  category:'Chat', url:'gemini.google.com', description:'60 free queries/day. Google integrated, great for research.'),
-    ToolResult(name:'Perplexity',  emoji:'🔍', isFree:false, category:'Search',url:'perplexity.ai',    description:'5 Pro searches/day free. Best AI-powered search engine.'),
-  ];
-
-  static const _resumeTools = [
-    ToolResult(name:'Kickresume',  emoji:'📄', isFree:false, category:'Career', url:'kickresume.com',  description:'Free AI resume builder. ATS-optimized templates.'),
-    ToolResult(name:'Resume.io',   emoji:'📋', isFree:false, category:'Career', url:'resume.io',       description:'AI suggestions for better resume writing.'),
-    ToolResult(name:'ChatGPT',     emoji:'🤖', isFree:false, category:'Chat',   url:'chat.openai.com', description:'Paste your resume, ask for improvements. Free tier: 40 msgs/3h.'),
-  ];
-
-  static const _writingTools = [
-    ToolResult(name:'Claude',      emoji:'✦',  isFree:false, category:'Writing', url:'claude.ai',       description:'Best for long-form writing. 40 free messages daily.'),
-    ToolResult(name:'Writesonic',  emoji:'✍️', isFree:false, category:'Writing', url:'writesonic.com',  description:'Free tier available. Blog posts, ads, social media copy.'),
-    ToolResult(name:'Copy.ai',     emoji:'📝', isFree:false, category:'Writing', url:'copy.ai',         description:'2000 words free/month. Marketing copy and content.'),
-  ];
-
-  static const _presentationTools = [
-    ToolResult(name:'Gamma',       emoji:'📊', isFree:false, category:'Slides', url:'gamma.app',       description:'10 free credits/month. AI presentations in seconds.'),
-    ToolResult(name:'Canva AI',    emoji:'🎨', isFree:true,  category:'Design', url:'canva.com',       description:'Free AI presentation templates and design tools.'),
-    ToolResult(name:'Beautiful.ai',emoji:'✨', isFree:false, category:'Slides', url:'beautiful.ai',    description:'Smart slide templates that design themselves.'),
-  ];
-
-  static const _searchTools = [
-    ToolResult(name:'Perplexity',  emoji:'🔍', isFree:false, category:'Search', url:'perplexity.ai',   description:'5 Pro searches/day. Cites sources, accurate answers.'),
-    ToolResult(name:'Gemini',      emoji:'♊',  isFree:true,  category:'Search', url:'gemini.google.com',description:'Google-powered AI search. 60 queries/day free.'),
-    ToolResult(name:'You.com',     emoji:'🌐', isFree:true,  category:'Search', url:'you.com',         description:'Free unlimited AI search with source citations.'),
-  ];
-
-  static const _voiceTools = [
-    ToolResult(name:'ElevenLabs',  emoji:'🎙️', isFree:false, category:'Voice', url:'elevenlabs.io',   description:'10,000 free characters/month. Most realistic AI voices.'),
-    ToolResult(name:'Murf AI',     emoji:'🔊', isFree:false, category:'Voice', url:'murf.ai',         description:'10 mins free voice generation. 120+ AI voices.'),
-    ToolResult(name:'PlayHT',      emoji:'📢', isFree:false, category:'Voice', url:'play.ht',         description:'12,500 free characters/month. Voice cloning available.'),
-  ];
-
-  static const _defaultTools = [
-    ToolResult(name:'ChatGPT',     emoji:'🤖', isFree:false, category:'Chat',  url:'chat.openai.com', description:'40 messages/3h on GPT-4o. Best all-rounder AI assistant.'),
-    ToolResult(name:'Claude',      emoji:'✦',  isFree:false, category:'Chat',  url:'claude.ai',       description:'40 messages/day. Excellent for writing and analysis.'),
-    ToolResult(name:'Gemini',      emoji:'♊',  isFree:true,  category:'Chat',  url:'gemini.google.com',description:'60 queries/day free. Google integrated AI assistant.'),
-  ];
-
-  // ── Track command parser ────────────────────────────────────
-  static Map<String, dynamic>? parseTrackCommand(String text) {
-    final t = text.toLowerCase();
-    String? toolId;
-    if (t.contains('chatgpt') || t.contains('gpt'))    toolId = 'chatgpt_gpt4o';
-    if (t.contains('claude'))                           toolId = 'claude';
-    if (t.contains('gemini'))                           toolId = 'gemini';
-    if (t.contains('perplexity'))                       toolId = 'perplexity';
-    if (t.contains('suno'))                             toolId = 'suno';
-    if (t.contains('midjourney'))                       toolId = 'midjourney';
-    if (t.contains('cursor'))                           toolId = 'cursor';
-    if (toolId == null) return null;
-
-    final numMatch = RegExp(r'\d+').firstMatch(t);
-    final count    = numMatch != null ? int.parse(numMatch.group(0)!) : 1;
-
-    // Reset command
-    final isReset = t.contains('reset') || t.contains('clear') ||
-                    t.contains('zero')  || t.contains('shuru');
-
-    return {'toolId': toolId, 'count': count, 'isReset': isReset};
-  }
-}
+// New Imports
+import '../models/voice_tool_model.dart';
+import '../services/voice_kb_service.dart';
+import 'voice_hub/widgets/mode_pill.dart';
+import 'voice_hub/widgets/waveform_bars.dart';
+import 'voice_hub/widgets/thinking_dots.dart';
+import 'voice_hub/widgets/cursor_blink.dart';
+import 'voice_hub/widgets/tool_card.dart';
 
 // ══════════════════════════════════════════════════════════════
 // VOICE HUB SCREEN
@@ -220,7 +50,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
   _VoiceState _state = _VoiceState.idle;
 
   String            _aiResponse = '';
-  List<ToolResult>  _results    = [];
+  List<VoiceToolModel>  _results    = [];
   String            _mode       = 'search'; // search | track
 
   // ── Animations ─────────────────────────────────────────────
@@ -292,7 +122,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
     }
 
     if (!_speechAvailable) {
-      _showToast('Microphone permission do Settings mein');
+      _showToast('Please grant Microphone permission in Settings');
       return;
     }
 
@@ -313,8 +143,8 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
       onResult:          _onResult,
       listenFor:         const Duration(seconds: 10),
       pauseFor:          const Duration(seconds: 2),
-      // Hindi + English dono support
-      localeId:          'hi_IN',
+      // English voice recognition
+      localeId:          'en_US',
       onSoundLevelChange: (level) {
         // Wave animation speed change based on sound level
         if (mounted) setState(() {});
@@ -366,7 +196,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
     _ringCtrl.stop();
     _waveCtrl.stop();
     if (error != 'error_speech_timeout') {
-      _showToast('Dobara try karo — $error');
+      _showToast('Try again — $error');
     }
   }
 
@@ -390,8 +220,8 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
   }
 
   void _handleSearch(String text) {
-    final response = VoiceKB.getResponse(text);
-    final tools    = VoiceKB.getTools(text);
+    final response = VoiceKBService.getResponse(text);
+    final tools    = VoiceKBService.getTools(text);
 
     setState(() {
       _aiResponse = response;
@@ -399,12 +229,14 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
       _state      = _VoiceState.done;
     });
 
+    UserProfileService.incrementToolsUsed();
+
     _resultCtrl.forward(from: 0);
     HapticFeedback.lightImpact();
   }
 
   void _handleTrackCommand(String text) {
-    final cmd = VoiceKB.parseTrackCommand(text);
+    final cmd = VoiceKBService.parseTrackCommand(text);
 
     if (cmd == null) {
       setState(() {
@@ -535,11 +367,11 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFF00C8E8).withValues(alpha: 0.08),
+          color: const Color(0xFF00C8E8).withOpacity(0.08),
           border: Border.all(
-            color: const Color(0xFF00C8E8).withValues(alpha: 0.2)),
+            color: const Color(0xFF00C8E8).withOpacity(0.2)),
         ),
-        child: const Text('HI + EN',
+        child: const Text('ENGLISH',
           style: TextStyle(fontFamily: 'DM Sans', fontSize: 10,
             color: Color(0xFF00C8E8), fontWeight: FontWeight.w600,
             letterSpacing: 0.5)),
@@ -551,7 +383,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
   Widget _buildModePills() => Padding(
     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
     child: Row(children: [
-      _ModePill(
+      ModePill(
         icon: '🔍', label: 'Find Tool',
         active: _mode == 'search',
         onTap: () => setState(() {
@@ -561,7 +393,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
         }),
       ),
       const SizedBox(width: 10),
-      _ModePill(
+      ModePill(
         icon: '📊', label: 'Log Usage',
         active: _mode == 'track',
         onTap: () => setState(() {
@@ -598,7 +430,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: const Color(0xFF00C8E8)
-                        .withValues(alpha: opacity.clamp(0, 1)),
+                        .withOpacity(opacity.clamp(0, 1)),
                     width: 1,
                   ),
                 ),
@@ -629,12 +461,12 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                 border: Border.all(
                   color: isActive
                       ? const Color(0xFF00C8E8)
-                      : const Color(0xFF00C8E8).withValues(alpha: 
+                      : const Color(0xFF00C8E8).withOpacity(
                           0.25 + 0.15 * _pulseCtrl.value),
                   width: 1.5,
                 ),
                 boxShadow: [BoxShadow(
-                  color: const Color(0xFF00C8E8).withValues(alpha: 
+                  color: const Color(0xFF00C8E8).withOpacity(
                     isActive
                         ? 0.3 + 0.15 * _pulseCtrl.value
                         : 0.08 + 0.06 * _pulseCtrl.value),
@@ -642,15 +474,11 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                   spreadRadius: isActive ? 4 : 0,
                 )],
               ),
-              child: _state == _VoiceState.thinking
-                  ? const _ThinkingDots()
-                  : Icon(
-                      _isListening ? Icons.mic : Icons.mic_none_rounded,
-                      color: isActive
-                          ? const Color(0xFF05080F)
-                          : const Color(0xFF00C8E8),
-                      size: 32,
-                    ),
+              child: SynapAiLoader(
+                size: isActive ? 90 : 80,
+                text: _state == _VoiceState.thinking ? 'Thinking' : (_isListening ? 'Listening' : 'Talk'),
+                animate: isActive,
+              ),
             );
           },
         ),
@@ -662,7 +490,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
           bottom: 20,
           child: AnimatedBuilder(
             animation: _waveCtrl,
-            builder: (_, __) => _WaveformBars(value: _waveCtrl.value),
+            builder: (_, __) => WaveformBars(value: _waveCtrl.value),
           ),
         ),
     ]),
@@ -675,20 +503,20 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
     switch (_state) {
       case _VoiceState.idle:
         text  = _speechAvailable
-            ? 'Mic tap karo — Hindi ya English mein bolo'
+            ? 'Tap Mic — Speak in English'
             : 'Microphone permission required';
         color = const Color(0xFF3A4A60);
         break;
       case _VoiceState.listening:
-        text  = 'Sun raha hoon...';
+        text  = 'Listening...';
         color = const Color(0xFF00C8E8);
         break;
       case _VoiceState.thinking:
-        text  = 'Soch raha hoon...';
+        text  = 'Thinking...';
         color = const Color(0xFFF5A623);
         break;
       case _VoiceState.done:
-        text  = 'Yeh raha jawab 👇';
+        text  = 'Here is your answer 👇';
         color = const Color(0xFF00D68F);
         break;
     }
@@ -707,7 +535,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle, color: color,
                   boxShadow: [BoxShadow(
-                    color: color.withValues(alpha: 0.5), blurRadius: 6)],
+                    color: color.withOpacity(0.5), blurRadius: 6)],
                 ),
               ),
             Text(text, style: TextStyle(fontFamily: 'DM Sans',
@@ -733,7 +561,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
         color: const Color(0xFF090D16),
         border: Border.all(
           color: _isListening
-              ? const Color(0xFF00C8E8).withValues(alpha: 0.3)
+              ? const Color(0xFF00C8E8).withOpacity(0.3)
               : const Color(0xFF131B27)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start,
@@ -755,7 +583,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                     fontSize: 14, color: Colors.white, height: 1.5)),
           ),
           if (_isListening)
-            const _CursorBlink(),
+            const CursorBlink(),
         ],
       ),
     );
@@ -783,7 +611,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                       borderRadius: BorderRadius.circular(7),
                       color: const Color(0xFF090D16),
                       border: Border.all(
-                        color: const Color(0xFF00C8E8).withValues(alpha: 0.3)),
+                        color: const Color(0xFF00C8E8).withOpacity(0.3)),
                     ),
                     child: const Center(
                       child: Text('S', style: TextStyle(
@@ -818,7 +646,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
                         child: Opacity(
                           opacity: v.clamp(0, 1), child: child),
                       ),
-                      child: _ToolCard(tool: e.value),
+                      child: ToolResultCard(tool: e.value),
                     ),
                   ),
                 ],
@@ -839,7 +667,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
         child: Text('Try karo',
           style: TextStyle(fontFamily: 'DM Sans', fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.25),
+            color: Colors.white.withOpacity(0.25),
             letterSpacing: 0.8)),
       ),
       SizedBox(
@@ -867,228 +695,5 @@ class _VoiceHubScreenState extends State<VoiceHubScreen>
         ),
       ),
     ],
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
-// SUB WIDGETS
-// ══════════════════════════════════════════════════════════════
-
-class _ModePill extends StatelessWidget {
-  final String icon, label;
-  final bool active;
-  final VoidCallback onTap;
-  const _ModePill({
-    required this.icon, required this.label,
-    required this.active, required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: active
-              ? const Color(0xFF00C8E8).withValues(alpha: 0.08)
-              : const Color(0xFF090D16),
-          border: Border.all(
-            color: active
-                ? const Color(0xFF00C8E8).withValues(alpha: 0.3)
-                : const Color(0xFF131B27)),
-        ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 8),
-            Text(label, style: TextStyle(
-              fontFamily: 'Syne', fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: active
-                  ? const Color(0xFF00C8E8)
-                  : const Color(0xFF3A4A60))),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _WaveformBars extends StatelessWidget {
-  final double value;
-  const _WaveformBars({required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final heights = [8.0, 16, 24, 32, 38, 30, 22, 14, 8, 18, 28, 36, 26, 16, 8];
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: heights.asMap().entries.map((e) {
-        final phase = (value + e.key * 0.07) % 1.0;
-        final h = e.value * (0.4 + 0.6 * sin(phase * pi));
-        return Container(
-          width: 3, height: h,
-          margin: const EdgeInsets.symmetric(horizontal: 1.5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2),
-            color: const Color(0xFF00C8E8).withValues(alpha: 0.7),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _ThinkingDots extends StatefulWidget {
-  const _ThinkingDots();
-  @override State<_ThinkingDots> createState() => _ThinkingDotsState();
-}
-
-class _ThinkingDotsState extends State<_ThinkingDots>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _c;
-  @override void initState() {
-    super.initState();
-    _c = AnimationController(vsync: this,
-      duration: const Duration(milliseconds: 900))..repeat();
-  }
-  @override void dispose() { _c.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, __) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(3, (i) {
-          final t = (_c.value - i * 0.15).clamp(0.0, 1.0);
-          final opacity = (sin(t * pi).clamp(0.2, 1.0));
-          return Container(
-            width: 6, height: 6,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF05080F).withValues(alpha: opacity),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-class _CursorBlink extends StatefulWidget {
-  const _CursorBlink();
-  @override State<_CursorBlink> createState() => _CursorBlinkState();
-}
-
-class _CursorBlinkState extends State<_CursorBlink>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _c;
-  @override void initState() {
-    super.initState();
-    _c = AnimationController(vsync: this,
-      duration: const Duration(milliseconds: 600))..repeat(reverse: true);
-  }
-  @override void dispose() { _c.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _c,
-    builder: (_, __) => Opacity(
-      opacity: _c.value,
-      child: Container(
-        width: 2, height: 16, margin: const EdgeInsets.only(left: 2),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(1),
-          color: const Color(0xFF00C8E8)),
-      ),
-    ),
-  );
-}
-
-class _ToolCard extends StatelessWidget {
-  final ToolResult tool;
-  const _ToolCard({required this.tool});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
-      color: const Color(0xFF0C1019),
-      border: Border.all(color: const Color(0xFF131B27)),
-    ),
-    child: Row(children: [
-      Container(
-        width: 46, height: 46,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFF090D16),
-          border: Border.all(color: const Color(0xFF1A2336)),
-        ),
-        child: Center(child: Text(tool.emoji,
-          style: const TextStyle(fontSize: 22))),
-      ),
-      const SizedBox(width: 12),
-      Expanded(child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(tool.name, style: const TextStyle(
-            fontFamily: 'Syne', fontSize: 14,
-            fontWeight: FontWeight.w700, color: Colors.white)),
-          const SizedBox(height: 3),
-          Text(tool.description, style: const TextStyle(
-            fontFamily: 'DM Sans', fontSize: 11,
-            color: Color(0xFF7A8FA8), height: 1.4),
-            maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 6),
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: tool.isFree
-                    ? const Color(0xFF00D68F).withValues(alpha: 0.1)
-                    : const Color(0xFF00C8E8).withValues(alpha: 0.08),
-                border: Border.all(
-                  color: tool.isFree
-                      ? const Color(0xFF00D68F).withValues(alpha: 0.25)
-                      : const Color(0xFF00C8E8).withValues(alpha: 0.2)),
-              ),
-              child: Text(
-                tool.isFree ? 'FREE' : 'FREE TIER',
-                style: TextStyle(fontFamily: 'DM Sans', fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: tool.isFree
-                      ? const Color(0xFF00D68F)
-                      : const Color(0xFF00C8E8),
-                  letterSpacing: 0.4)),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: const Color(0xFF131B27),
-              ),
-              child: Text(tool.category, style: const TextStyle(
-                fontFamily: 'DM Sans', fontSize: 9,
-                color: Color(0xFF3A4A60),
-                fontWeight: FontWeight.w600)),
-            ),
-          ]),
-        ],
-      )),
-      const Icon(Icons.arrow_forward_ios,
-        color: Color(0xFF2E3E54), size: 12),
-    ]),
   );
 }
