@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -65,7 +66,7 @@ void main() async {
 
     // ━━━ AI FOR TRADITIONAL ARTS (Pottery & Jewelry) ━━━
     t('pottery-log-ai-pro','Pottery Log','lifestyle','The digital notebook for potters using AI to track glazes and firings.','https://potterylog.com',true,true,35000, freeTier:'Free basic version available', price:0, tips:'AI-powered "Glaze" calculator | Best for studio management | Niche favorite'),
-    t('jewelry-cad-ai-pro','Jewelry Architect (AI)','design','Leading platform for creating professional jewelry designs with AI.','https://jewelry-cad.com',false,true,15000, freeTier:'Institutional only', price:0, tips:'AI-powered "Gemstone" settings | Best for jewelers | High precision'),
+    t('meshy-ai-pro-design','Meshy AI','design','AI 3D design platform for creating assets from text and images quickly.','https://meshy.ai',true,true,15000, freeTier:'Free monthly credits available', price:16, priceTier:'Pro monthly', tips:'Great for 3D product concepts | AI text-to-3D workflow | Fast export formats'),
     t('diamond-ai-pro-val','Diamond AI','business','AI-powered valuation and grading for diamonds and precious stones.','https://diamond.ai',false,false,12000, freeTier:'Institutional only', price:0, tips:'AI-powered "Clarity" grading | Used by wholesalers | High trust'),
     t('bead-ai-pro-design','Bead Architect','lifestyle','AI-powered design and pattern help for beading and jewelry artists.','https://beadarchitect.com',true,false,15000, freeTier:'Free basic version', price:0, tips:'AI-powered "Color" matching | Best for hobbyists | clean UI'),
     t('stained-glass-ai','Stained Glass (AI)','design','AI-powered pattern generator and design helper for stained glass artists.','https://stainedglasspatterns.com',true,false,18000, freeTier:'Free basic patterns', price:0, tips:'AI-powered "Cut" optimization | Best for glass artists | Creative'),

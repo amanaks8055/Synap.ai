@@ -204,7 +204,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildToolTile(Tool tool) {
+  Widget _buildToolTile(ToolModel tool) {
     return GestureDetector(
       onTap: () {
         // Record view event for recommendations
@@ -234,6 +234,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 name: tool.name,
                 categoryId: tool.categoryId,
                 iconUrl: tool.iconUrl,
+                iconEmoji: tool.iconEmoji,
                 size: 48,
                 fontSize: 20,
                 radius: 12),

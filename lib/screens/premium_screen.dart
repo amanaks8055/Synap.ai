@@ -8,9 +8,13 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../blocs/premium/premium_bloc.dart';
 import '../widgets/moving_border_button.dart';
+import '../blocs/premium/premium_plans.dart';
 
 class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
@@ -43,6 +47,7 @@ class _PremiumScreenState extends State<PremiumScreen>
   @override
   void initState() {
     super.initState();
+    context.read<PremiumBloc>().add(PremiumInitialized());
 
     _rainCtrl = AnimationController(
       vsync: this, duration: const Duration(seconds: 80),
@@ -177,20 +182,24 @@ class _PremiumScreenState extends State<PremiumScreen>
             ),
           ),
 
-          // ── Gradient overlay ──────────────────────────────
-          Positioned.fill(child: IgnorePointer(child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x22040608), Color(0x44040608),
-                  Color(0xCC040608), Color(0xFF040608),
-                ],
-                stops: [0, 0.3, 0.55, 0.75],
+          // ── Gradient overlay (top only — don't cover bottom content) ──
+          Positioned(
+            top: 0, left: 0, right: 0,
+            height: MediaQuery.of(ctx).size.height * 0.45,
+            child: IgnorePointer(child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x44040608), Color(0x22040608),
+                    Colors.transparent,
+                  ],
+                  stops: [0, 0.5, 1.0],
+                ),
               ),
-            ),
-          ))),
+            )),
+          ),
 
           // ── Content ───────────────────────────────────────
           SafeArea(
@@ -199,7 +208,7 @@ class _PremiumScreenState extends State<PremiumScreen>
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                   child: Column(children: [
                     _buildHero(),
                     const SizedBox(height: 28),
@@ -208,13 +217,23 @@ class _PremiumScreenState extends State<PremiumScreen>
                     _buildPlanCards(state),
                     const SizedBox(height: 20),
                     _buildFeatures(),
-                    const SizedBox(height: 28),
-                    _buildCTAButton(ctx, state),
-                    const SizedBox(height: 14),
-                    _buildRestoreButton(ctx, state),
-                    const SizedBox(height: 12),
-                    _buildLegal(),
                   ]),
+                ),
+              ),
+              // ── Pinned bottom: CTA + Restore + Legal ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+                child: _buildCTAButton(ctx, state),
+              ),
+              Flexible(
+                flex: 0,
+                child: _buildRestoreButton(ctx, state),
+              ),
+              Flexible(
+                flex: 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: _buildLegal(),
                 ),
               ),
             ]),
@@ -280,7 +299,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 shape: BoxShape.circle,
                 boxShadow: [BoxShadow(
                   color: const Color(0xFF6EE7F7).withOpacity(
-                    0.12 + 0.18 * sin(_shimmerCtrl.value * 2 * pi),
+                    (0.12 + 0.18 * sin(_shimmerCtrl.value * 2 * pi)).clamp(0.0, 1.0),
                   ),
                   blurRadius: 35, spreadRadius: 6,
                 )],
@@ -296,8 +315,12 @@ class _PremiumScreenState extends State<PremiumScreen>
                     color: const Color(0xFF6EE7F7).withOpacity(0.2),
                   ),
                 ),
-                child: const Center(
-                  child: Text('⚡', style: TextStyle(fontSize: 36)),
+                child: Center(
+                  child: SizedBox(
+                    width: 38,
+                    height: 38,
+                    child: SvgPicture.asset('assets/logo.svg'),
+                  ),
                 ),
               ),
             ),
@@ -318,9 +341,39 @@ class _PremiumScreenState extends State<PremiumScreen>
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(height: 12),
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              text: 'By continuing, you agree to our ',
+              style: TextStyle(
+                fontFamily: 'DM Sans',
+                fontSize: 10,
+                color: Colors.white.withOpacity(0.55),
+                height: 1.7,
+              ),
+              children: [
+                TextSpan(
+                  text: 'Website',
+                  style: TextStyle(
+                    color: const Color(0xFF6EE7F7).withOpacity(0.6),
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()..onTap = () => _launchPrivacyPolicy(),
+                ),
+              ],
+            ),
+          ),
         ]),
       ),
     );
+  }
+
+  void _launchPrivacyPolicy() async {
+    final url = Uri.parse('https://synap-ac981.web.app/privacy-policy.html');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   // ─────────────────────────────────────────────────────────
@@ -339,14 +392,14 @@ class _PremiumScreenState extends State<PremiumScreen>
         child: Row(children: [
           _TierTab(
             label: '🎓 Student',
-            sublabel: 'From ₹29',
+            sublabel: 'From ₹14',
             isActive: _selectedTier == PlanTier.student,
             activeColor: const Color(0xFF6EE7F7),
             onTap: () => _switchTier(PlanTier.student),
           ),
           _TierTab(
             label: '💼 Professional',
-            sublabel: 'From ₹59',
+            sublabel: 'From ₹5',
             isActive: _selectedTier == PlanTier.professional,
             activeColor: const Color(0xFFA78BFA),
             onTap: () => _switchTier(PlanTier.professional),
@@ -399,14 +452,14 @@ class _PremiumScreenState extends State<PremiumScreen>
   Widget _buildFeatures() {
     final studentFeatures = [
       ('✨', '100% Ad-Free discovery'),
-      ('🔐', 'Unlock Student-only AI guides'),
       ('🔖', 'Unlimited Bookmarks for research'),
-      ('🚀', 'Early access to new tools'),
+      ('🔐', 'Unlock premium AI tool collections'),
+      ('🚀', 'Priority app updates & features'),
     ];
     final proFeatures = [
       ('💎', 'Everything in Student tier'),
       ('🔥', 'Founders Vault Access'),
-      ('📊', 'ROI analytics for AI tools'),
+      ('📊', 'Startup documents & templates'),
       ('📞', 'Priority WhatsApp Support'),
     ];
 
@@ -538,13 +591,16 @@ class _PremiumScreenState extends State<PremiumScreen>
   }
 
   Widget _buildLegal() {
-    return Text(
-      'Subscriptions auto-renew. Cancel anytime via Google Play.\n'
-      'By continuing you agree to our Terms & Privacy Policy.',
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontFamily: 'DM Sans', fontSize: 10,
-        color: Colors.white.withOpacity(0.2), height: 1.5,
+    return GestureDetector(
+      onTap: () => _openUrl(context, 'https://synap-ac981.web.app/privacy-policy.html'),
+      child: Text(
+        'Subscriptions auto-renew. Cancel anytime via Google Play.\n'
+        'By continuing you agree to our Terms & Website.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'DM Sans', fontSize: 10,
+          color: Colors.white.withOpacity(0.2), height: 1.5,
+        ),
       ),
     );
   }
@@ -568,6 +624,18 @@ class _PremiumScreenState extends State<PremiumScreen>
         ],
       )),
     );
+  }
+
+  Future<void> _openUrl(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        if (!context.mounted) return;
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+
+    }
   }
 }
 
@@ -690,19 +758,30 @@ class _PlanCardState extends State<_PlanCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Text(widget.plan.label, style: TextStyle(
-                  fontFamily: 'Syne', fontSize: 15, fontWeight: FontWeight.w700,
-                  color: widget.isSelected
-                      ? Colors.white
-                      : const Color(0xFF64748B),
-                )),
+                Flexible(
+                  child: Text(
+                    widget.plan.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'Syne',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: widget.isSelected
+                          ? Colors.white
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
                 if (widget.plan.highlight != null) ...[
                   const SizedBox(width: 8),
                   _Badge(
                     text: widget.plan.highlight!,
-                    color: widget.plan.highlight == 'POPULAR'
-                        ? const Color(0xFF6EE7F7)
-                        : const Color(0xFF22C55E),
+                    color: widget.plan.highlight == 'LIMITED TIME'
+                        ? const Color(0xFFF59E0B) // Amber
+                        : widget.plan.highlight == 'POPULAR'
+                            ? const Color(0xFF6EE7F7)
+                            : const Color(0xFF22C55E),
                   ),
                 ],
               ]),
@@ -716,10 +795,25 @@ class _PlanCardState extends State<_PlanCard> {
 
           // Price + period
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(widget.displayPrice, style: TextStyle(
-              fontFamily: 'Syne', fontSize: 18, fontWeight: FontWeight.w800,
-              color: widget.isSelected ? Colors.white : const Color(0xFF4A5568),
-            )),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.plan.oldPrice != null) ...[
+                  Text(widget.plan.oldPrice!, style: TextStyle(
+                    fontFamily: 'DM Sans', fontSize: 13,
+                    color: widget.isSelected 
+                      ? Colors.white.withOpacity(0.5) 
+                      : const Color(0xFF4A5568).withOpacity(0.5),
+                    decoration: TextDecoration.lineThrough,
+                  )),
+                  const SizedBox(width: 6),
+                ],
+                Text(widget.displayPrice, style: TextStyle(
+                  fontFamily: 'Syne', fontSize: 18, fontWeight: FontWeight.w800,
+                  color: widget.isSelected ? Colors.white : const Color(0xFF4A5568),
+                )),
+              ],
+            ),
             Text('/ ${widget.plan.period}', style: const TextStyle(
               fontFamily: 'DM Sans', fontSize: 10,
               color: Color(0xFF2D3748),

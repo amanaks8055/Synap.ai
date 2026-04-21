@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -89,7 +90,7 @@ void main() async {
     t('heygen-ai-pro','HeyGen','video','Leading AI video generator for creating professional spokespeople.','https://heygen.com',true,true,150000, freeTier:'1 free credit for trial', price:24, priceTier:'Creator monthly', tips:'Best for corporate training and ads | AI-powered video translation | Realistic avatars'),
     t('synthesia-ai-pro','Synthesia','video','The #1 AI video creation platform for enterprise teams.','https://synthesia.io',true,true,180000, freeTier:'Free basic video online', price:22, priceTier:'Starter monthly', tips:'100+ AI avatars | AI-powered video templates | World class performance'),
     t('runway-gen-3','Runway Gen-3 (Alpha)','video','High-end generative video model for creators and artists from Runway.','https://runwayml.com',true,true,250000, freeTier:'Free basic credits to start', price:12, priceTier:'Standard monthly', tips:'Best for visual effects and art | AI-powered motion brush | Industry leader'),
-    t('luma-dream-machine','Luma Dream Machine','video','New high-quality generative video model from Luma AI for everyone.','https://lumalabs.ai/dream-machine',true,true,180000, freeTier:'30 free gens per month', price:30, priceTier:'Standard monthly', tips:'Blazing fast and photorealistic | One-click video generation | Mobile first'),
+    t('pika-labs-video','Pika Labs','video','Fast AI video generation platform for creators and social-first workflows.','https://pika.art',true,true,180000, freeTier:'Free starter generations', price:10, priceTier:'Standard monthly', tips:'Quick text-to-video generation | Strong creator community | Reliable brand assets'),
     t('pi-ai-assistant','Pi (Inflection)','productivity','An AI with personality - designed to be your personal, caring assistant.','https://pi.ai',true,true,500000, freeTier:'Completely free for everyone', price:0, tips:'Best for long conversations | High EQ and empathy | Built by Google/MS experts'),
   ];
 

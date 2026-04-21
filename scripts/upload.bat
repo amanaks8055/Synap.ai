@@ -1,2 +1,17 @@
-echo off
-curl.exe -X POST "https://ssemwzmwhlcfmzmrweuw.supabase.co/rest/v1/ai_tools" -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA" -H "Content-Type: application/json" -d @body.json
+@echo off
+setlocal EnableExtensions
+
+for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%~dp0..\.env") do (
+	if not "%%A"=="" set "%%A=%%B"
+)
+
+if "%SUPABASE_URL%"=="" (
+	echo SUPABASE_URL missing in .env
+	exit /b 1
+)
+if "%SUPABASE_ANON_KEY%"=="" (
+	echo SUPABASE_ANON_KEY missing in .env
+	exit /b 1
+)
+
+curl.exe -X POST "%SUPABASE_URL%/rest/v1/ai_tools" -H "apikey: %SUPABASE_ANON_KEY%" -H "Authorization: Bearer %SUPABASE_ANON_KEY%" -H "Content-Type: application/json" -d @body.json

@@ -23,11 +23,19 @@ function render(usage) {
     const wrap = document.getElementById('toolsWrap');
 
     if (!usage || Object.keys(usage).length === 0) {
-        wrap.innerHTML = '<div class="empty-state">Open ChatGPT, Claude or Gemini<br>— tracking starts automatically</div>';
+        wrap.replaceChildren();
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        emptyDiv.textContent = 'Open ChatGPT, Claude or Gemini';
+        const br = document.createElement('br');
+        emptyDiv.appendChild(br);
+        const text = document.createTextNode('— tracking starts automatically');
+        emptyDiv.appendChild(text);
+        wrap.appendChild(emptyDiv);
         return;
     }
 
-    wrap.innerHTML = '';
+    wrap.replaceChildren();
 
     // Convert object to array and sort by last used
     const tools = Object.entries(usage)
@@ -62,17 +70,54 @@ function render(usage) {
 
         const row = document.createElement('div');
         row.className = 'trow';
-        row.innerHTML = `
-      <div class="temoji">${EMOJIS[id] || '🤖'}</div>
-      <div class="tinfo">
-        <div class="tname">${NAMES[id] || id} <span class="badge ${badgeClass}">${badgeLabel}</span></div>
-        <div class="tbar"><div class="tfill" style="width:${pct * 100}%;background:${col}"></div></div>
-      </div>
-      <div class="tright">
-        <div class="trem" style="color:${col}">${remaining}</div>
-        <div class="tunit">${used}/${limit}</div>
-        <div class="treset">${resetIn}</div>
-      </div>`;
+        
+        const emojiDiv = document.createElement('div');
+        emojiDiv.className = 'temoji';
+        emojiDiv.textContent = EMOJIS[id] || '🤖';
+        row.appendChild(emojiDiv);
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'tinfo';
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'tname';
+        nameDiv.textContent = (NAMES[id] || id) + ' ';
+        
+        const badgeSpan = document.createElement('span');
+        badgeSpan.className = `badge ${badgeClass}`;
+        badgeSpan.textContent = badgeLabel;
+        nameDiv.appendChild(badgeSpan);
+        infoDiv.appendChild(nameDiv);
+
+        const barDiv = document.createElement('div');
+        barDiv.className = 'tbar';
+        const fillDiv = document.createElement('div');
+        fillDiv.className = 'tfill';
+        fillDiv.style.width = `${pct * 100}%`;
+        fillDiv.style.background = col;
+        barDiv.appendChild(fillDiv);
+        infoDiv.appendChild(barDiv);
+        row.appendChild(infoDiv);
+
+        const rightDiv = document.createElement('div');
+        rightDiv.className = 'tright';
+        
+        const remDiv = document.createElement('div');
+        remDiv.className = 'trem';
+        remDiv.style.color = col;
+        remDiv.textContent = remaining;
+        rightDiv.appendChild(remDiv);
+
+        const unitDiv = document.createElement('div');
+        unitDiv.className = 'tunit';
+        unitDiv.textContent = `${used}/${limit}`;
+        rightDiv.appendChild(unitDiv);
+
+        const resetDiv = document.createElement('div');
+        resetDiv.className = 'treset';
+        resetDiv.textContent = resetIn;
+        rightDiv.appendChild(resetDiv);
+        row.appendChild(rightDiv);
 
         row.onclick = () => {
             chrome.runtime.sendMessage({ action: 'reset', provider: id }, () => {

@@ -13,7 +13,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../config/ad_config.dart';
-import '../../services/ad_service.dart';
 
 class AdBannerWidget extends StatefulWidget {
   final bool isProUser;
@@ -48,7 +47,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
           if (mounted) setState(() => _adLoaded = true);
         },
         onAdFailedToLoad: (ad, err) {
-          debugPrint('🔴 Banner failed: ${err.message}');
+
           ad.dispose();
           if (mounted) setState(() => _adFailed = true);
         },
@@ -64,8 +63,8 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Pro user ya ads disabled → nothing
-    if (kIsWeb || widget.isProUser || !AdConfig.showAdsForFree) {
+    // Pro user ya ads disabled ya failed → nothing
+    if (kIsWeb || widget.isProUser || !AdConfig.showAdsForFree || _adFailed) {
       return const SizedBox.shrink();
     }
 

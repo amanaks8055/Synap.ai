@@ -16,18 +16,56 @@ class UserProfileService {
   static final ValueNotifier<int> toolsUsedCountNotifier = ValueNotifier<int>(0);
   static final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier<bool>(true);
 
+  static String _nameFromAuthUser() {
+    final user = AuthService.currentUser;
+    if (user == null) return 'Synap Explorer';
+
+    final meta = user.userMetadata;
+    final fromFullName = meta?['full_name'] as String?;
+    final fromName = meta?['name'] as String?;
+    final fromEmail = user.email;
+
+    if (fromFullName != null && fromFullName.trim().isNotEmpty) {
+      return fromFullName.trim();
+    }
+    if (fromName != null && fromName.trim().isNotEmpty) {
+      return fromName.trim();
+    }
+    if (fromEmail != null && fromEmail.trim().isNotEmpty) {
+      return fromEmail.split('@').first;
+    }
+    return 'Synap Explorer';
+  }
+
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    
-    // Initial and live sync
-    final user = AuthService.currentUser;
-    final metaName = user?.userMetadata?['full_name'] as String?;
-    
-    nameNotifier.value = metaName ?? prefs.getString(_nameKey) ?? 'Synap Explorer';
+
+    // Prefer live auth metadata, fallback to locally stored custom name.
+    final metaName = _nameFromAuthUser();
+    final savedName = prefs.getString(_nameKey);
+    nameNotifier.value = metaName != 'Synap Explorer' ? metaName : (savedName ?? 'Synap Explorer');
+
+    if (metaName != 'Synap Explorer' && savedName != metaName) {
+      await prefs.setString(_nameKey, metaName);
+    }
+
     avatarIndexNotifier.value = prefs.getInt(_avatarIndexKey) ?? 0;
     favoritesCountNotifier.value = prefs.getInt(_favoritesCountKey) ?? 0;
     toolsUsedCountNotifier.value = prefs.getInt(_toolsUsedCountKey) ?? 0;
     notificationsEnabledNotifier.value = prefs.getBool(_notificationsEnabledKey) ?? true;
+  }
+
+  static Future<void> syncFromAuthState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final metaName = _nameFromAuthUser();
+
+    if (AuthService.isLoggedIn) {
+      nameNotifier.value = metaName;
+      await prefs.setString(_nameKey, metaName);
+      return;
+    }
+
+    nameNotifier.value = prefs.getString(_nameKey) ?? 'Synap Explorer';
   }
 
   static Future<void> updateName(String newName) async {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../screens/home_screen.dart';
-import '../../screens/explore_screen.dart';
-import '../../screens/startup/startup_kit_screen.dart';
-import '../../screens/favorites_screen.dart';
-import '../../screens/menu_screen.dart';
-import '../../theme/app_theme.dart';
+import 'home_screen.dart';
+import 'explore_screen.dart';
+import 'startup/startup_kit_screen.dart';
+import 'favorites_screen.dart';
+import 'menu_screen.dart';
+import '../theme/app_theme.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});

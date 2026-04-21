@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, {String? freeTier, double? price, String? priceTier, String? tips}) {
   return {
@@ -14,8 +15,8 @@ Map<String, dynamic> t(String id, {String? freeTier, double? price, String? pric
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -38,7 +39,7 @@ void main() async {
     t('described', freeTier:'Free basic version available', price:0, tips:'Best for alt-text and accessibility | AI-powered "Image" descriptions'),
     t('lexica', freeTier:'Free 16 images daily', price:10, priceTier:'Starter monthly annual', tips:'The "Stable Diffusion" search engine | Best for finding prompts'),
     t('gamma-ai', freeTier:'Free 400 credits initially', price:8, priceTier:'Plus monthly annual', tips:'Best for slide decks | AI-powered "One-click" presentation builder'),
-    t('tome', freeTier:'Free basic credits available', price:10, priceTier:'Pro monthly annual', tips:'Best for storytelling and sales decks | AI-powered "Interactive" tiles'),
+    t('gamma', freeTier:'Free basic credits available', price:10, priceTier:'Pro monthly annual', tips:'Best for storytelling and sales decks | AI-powered "Interactive" layouts'),
     t('beautiful-ai', freeTier:'14-day free trial on site', price:12, priceTier:'Pro monthly annual', tips:'Best for design-first slides | AI-powered "Smart Slides" that auto-adjust'),
     t('prezi-ai', freeTier:'Free basic version available', price:7, priceTier:'Standard monthly annual', tips:'The non-linear presentation king | AI-powered "Content" helper'),
     t('visme-ai', freeTier:'Free basic version available', price:12, priceTier:'Starter monthly annual', tips:'Best for infographics | AI-powered "Design" templates are robust'),

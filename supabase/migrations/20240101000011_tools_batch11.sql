@@ -38,7 +38,7 @@ INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,web
 -- ━━━ POPULAR VIDEO TOOLS (more) ━━━
 ('kling-ai','Kling AI','kling','video','AI video generator by Kuaishou with high-quality motion.','🎬','https://klingai.com',true,false,6800),
 ('minimax','MiniMax Hailuo','minimax','video','AI video generator creating realistic motion from text prompts.','🎥','https://hailuoai.video',true,false,5200),
-('luma-dream','Luma Dream Machine','luma-dream','video','AI video generator creating realistic 5-second clips from text.','🌙','https://lumalabs.ai',true,false,4800),
+('google-veo','Google Veo','google-veo','video','Generative video model from Google for high-quality cinematic clips.','🌙','https://deepmind.google/technologies/veo/',true,false,4800),
 ('genmo','Genmo','genmo','video','AI video generator with Mochi 1 model for creative content.','🎬','https://genmo.ai',true,false,3200),
 ('haiper','Haiper','haiper','video','AI video generator by ex-DeepMind team with 2.0 model.','🎥','https://haiper.ai',true,false,2800),
 ('vidu','Vidu AI','vidu','video','AI video generator by Shengshu Technology with high consistency.','🎬','https://vidu.studio',true,false,2400),

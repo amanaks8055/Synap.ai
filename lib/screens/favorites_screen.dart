@@ -81,7 +81,7 @@ class FavoritesScreen extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 child: Row(
                                   children: [
-                                    ToolIcon(name: tool.name, categoryId: tool.categoryId, iconUrl: tool.iconUrl, size: 44, fontSize: 18, radius: 12),
+                                    ToolIcon(name: tool.name, categoryId: tool.categoryId, iconUrl: tool.iconUrl, iconEmoji: tool.iconEmoji, size: 44, fontSize: 18, radius: 12),
                                     const SizedBox(width: 14),
                                     Expanded(
                                       child: Column(

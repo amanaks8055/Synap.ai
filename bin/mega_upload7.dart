@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -72,7 +73,7 @@ void main() async {
     t('obs-studio','OBS Studio','gaming','Open-source software for video recording and live streaming.','https://obsproject.com',true,true,45000, freeTier:'Completely free forever', price:0, tips:'The industry standard | Huge plugin ecosystem | AI noise removal plugin available'),
 
     // ━━━ CRYPTO & WEB3 AI ━━━
-    t('chainanalysis','Chainalysis','security','Blockchain data platform with AI for detecting fraud and risk.','https://chainalysis.com',false,true,3400, freeTier:'Free reports available', price:0, tips:'Investigate crypto crimes | Real-time monitoring | Used by governments'),
+    t('trm-labs-ai','TRM Labs','security','AI-powered blockchain intelligence for fraud detection and compliance monitoring.','https://trmlabs.com',false,true,3400, freeTier:'Institutional only', price:0, tips:'Strong AML workflows | Wallet risk intelligence | Trusted by exchanges'),
     t('elliptic-ai','Elliptic','security','AI blockchain analytics for crypto compliance and risk management.','https://elliptic.co',false,false,2800, freeTier:'Demo available', price:0, tips:'World leading wallet screening | Identify high-risk actors | Used by banks'),
     t('dune-analytics','Dune AI','data','Open blockchain data analytics platform with AI SQL assistant.','https://dune.com',true,true,5600, freeTier:'Free community dashboards', price:39, priceTier:'Pro: private queries and more data', tips:'SQL to crypto insights | Community-driven data | AI helps write queries'),
     t('nansen-ai','Nansen','data','Blockchain analytics platform surfaceing "smart money" movements.','https://nansen.ai',true,true,4800, freeTier:'Free basic access', price:99, priceTier:'Standard monthly', tips:'Follow top wallets | NFT market data | Identify emerging trends'),

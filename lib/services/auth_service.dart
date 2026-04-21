@@ -6,82 +6,51 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static final _sb = Supabase.instance.client;
+  static SupabaseClient get _sb => Supabase.instance.client;
 
-  // ── GOOGLE CLIENT IDs ──────────────────────────
-  static const webClientId =
-      '832924787145-d68ebhsl53u3sr7fjhtbtm9ejqbp8o0o.apps.googleusercontent.com';
-  static const iosClientId =
-      '832924787145-iul36b14gm1mt536grcpmtle448f0rka.apps.googleusercontent.com';
-
-  static final _googleSignIn = GoogleSignIn(
-    clientId: kIsWeb
-        ? webClientId
-        : (defaultTargetPlatform == TargetPlatform.iOS ? iosClientId : null),
-    serverClientId: kIsWeb ? null : webClientId,
-  );
   // ── Current user ─────────────────────────────────────────
-  static User? get currentUser => _sb.auth.currentUser;
-  static bool  get isLoggedIn  => currentUser != null;
-  static bool  get isGuest     => currentUser == null;
-  static String? get userId    => currentUser?.id;
+  static User? get currentUser {
+    try {
+      return _sb.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool get isLoggedIn => currentUser != null;
+  static bool get isGuest => currentUser == null;
+  static String? get userId => currentUser?.id;
 
   // ── Auth state stream (listen for changes) ───────────────
-  static Stream<AuthState> get authStateChanges =>
-      _sb.auth.onAuthStateChange;
+  static Stream<AuthState> get authStateChanges {
+    try {
+      return _sb.auth.onAuthStateChange;
+    } catch (_) {
+      return const Stream.empty();
+    }
+  }
 
   // ══════════════════════════════════════════════════════════
   // GOOGLE SIGN IN
   // ══════════════════════════════════════════════════════════
   static Future<AuthResult> signInWithGoogle() async {
     try {
-      if (kIsWeb) {
-        debugPrint('[Auth] Starting Google OAuth (Web Redirect Flow)');
-        await _sb.auth.signInWithOAuth(
-          OAuthProvider.google,
-          redirectTo: kDebugMode 
-              ? 'http://localhost:3000' 
-              : 'https://synap-ac981.web.app',
-        );
-        // On web, signInWithOAuth triggers a redirect.
-        return AuthResult._(success: true, cancelled: false); 
-      }
-
-      // Mobile Flow (Native)
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return AuthResult.cancelled();
-      }
-
-      final googleAuth = await googleUser.authentication;
-      final idToken    = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
-
-      if (idToken == null) {
-        return AuthResult.error('Google sign in failed (no token)');
-      }
-
-      final res = await _sb.auth.signInWithIdToken(
-        provider:    OAuthProvider.google,
-        idToken:     idToken,
-        accessToken: accessToken,
+      await _sb.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb
+            ? (kDebugMode ? 'http://localhost:3000' : 'https://synap-ac981.web.app')
+            : 'synap://login-callback',
       );
 
-      if (res.user != null) {
-        await _updateProfile(
-          name:   googleUser.displayName,
-          avatar: googleUser.photoUrl,
-        );
-        return AuthResult.success(res.user!);
-      }
-      
-      return AuthResult.error('Failed to sign in to Supabase');
+      // OAuth redirects out of app/browser and returns via callback.
+      // Session update is delivered through onAuthStateChange.
+      return AuthResult._(success: true, cancelled: false);
+    } on AuthException catch (e) {
+      return AuthResult.error(_friendlyError(e.message));
     } catch (e) {
-      debugPrint('[Auth] Google error: $e');
       return AuthResult.error(e.toString());
     }
   }
@@ -97,12 +66,13 @@ class AuthService {
   }) async {
     try {
       final fullName = [firstName, lastName]
-          .where((s) => s != null && s.isNotEmpty).join(' ');
+          .where((s) => s != null && s.isNotEmpty)
+          .join(' ');
 
       final res = await _sb.auth.signUp(
-        email:    email,
+        email: email,
         password: password,
-        data:     { 'full_name': fullName },
+        data: {'full_name': fullName},
       );
 
       if (res.user == null) {
@@ -126,7 +96,7 @@ class AuthService {
   }) async {
     try {
       final res = await _sb.auth.signInWithPassword(
-        email:    email,
+        email: email,
         password: password,
       );
 
@@ -171,15 +141,15 @@ class AuthService {
     try {
       final guestId = await getOrCreateGuestId();
       await _sb.from('favorites').upsert({
-        'guest_id':   guestId,
-        'tool_id':    toolId,
-        'tool_name':  toolName,
+        'guest_id': guestId,
+        'tool_id': toolId,
+        'tool_name': toolName,
         'tool_emoji': emoji,
       });
     } catch (e) {
       // Offline: save locally
-      final prefs  = await SharedPreferences.getInstance();
-      final local  = prefs.getStringList('local_favorites') ?? [];
+      final prefs = await SharedPreferences.getInstance();
+      final local = prefs.getStringList('local_favorites') ?? [];
       if (!local.contains(toolId)) {
         local.add(toolId);
         await prefs.setStringList('local_favorites', local);
@@ -190,12 +160,9 @@ class AuthService {
   static Future<List<String>> getGuestFavorites() async {
     try {
       final guestId = await getOrCreateGuestId();
-      final res = await _sb.from('favorites')
-          .select('tool_id')
-          .eq('guest_id', guestId);
-      return (res as List)
-          .map((r) => r['tool_id'] as String)
-          .toList();
+      final res =
+          await _sb.from('favorites').select('tool_id').eq('guest_id', guestId);
+      return (res as List).map((r) => r['tool_id'] as String).toList();
     } catch (_) {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getStringList('local_favorites') ?? [];
@@ -212,16 +179,17 @@ class AuthService {
       return;
     }
     await _sb.from('favorites').upsert({
-      'user_id':    userId,
-      'tool_id':    toolId,
-      'tool_name':  toolName,
+      'user_id': userId,
+      'tool_id': toolId,
+      'tool_name': toolName,
       'tool_emoji': emoji,
     });
   }
 
   static Future<void> removeFavorite(String toolId) async {
     if (!isLoggedIn) return;
-    await _sb.from('favorites')
+    await _sb
+        .from('favorites')
         .delete()
         .eq('user_id', userId!)
         .eq('tool_id', toolId);
@@ -232,7 +200,8 @@ class AuthService {
       final ids = await getGuestFavorites();
       return ids.map((id) => {'tool_id': id}).toList();
     }
-    final res = await _sb.from('favorites')
+    final res = await _sb
+        .from('favorites')
         .select()
         .eq('user_id', userId!)
         .order('added_at', ascending: false);
@@ -243,48 +212,30 @@ class AuthService {
   // SIGN OUT
   // ══════════════════════════════════════════════════════════
   static Future<void> signOut() async {
-    try {
-      await _googleSignIn.signOut();
-    } catch (_) {}
     await _sb.auth.signOut();
   }
 
   // ══════════════════════════════════════════════════════════
   // HELPERS
   // ══════════════════════════════════════════════════════════
-  static Future<void> _updateProfile({
-    String? name, String? avatar}) async {
-    try {
-      if (userId == null) return;
-      final updates = <String, dynamic>{};
-      if (name   != null) updates['full_name']  = name;
-      if (avatar != null) updates['avatar_url'] = avatar;
-      if (updates.isEmpty) return;
-      updates['updated_at'] = DateTime.now().toIso8601String();
-      await _sb.from('profiles').upsert({
-        'id': userId, ...updates,
-      });
-    } catch (e) {
-      // Non-fatal: profile table may not exist yet
-      debugPrint('[Auth] Profile update skipped: $e');
-    }
-  }
-
   static String _friendlyError(String msg) {
-    if (msg.contains('Invalid login'))    return 'Wrong email or password';
-    if (msg.contains('Email not confirmed')) return 'Please verify your email first';
-    if (msg.contains('already registered')) return 'Account already exists — sign in instead';
-    if (msg.contains('Password should'))  return 'Password must be at least 6 characters';
+    if (msg.contains('Invalid login')) return 'Wrong email or password';
+    if (msg.contains('Email not confirmed'))
+      return 'Please verify your email first';
+    if (msg.contains('already registered'))
+      return 'Account already exists — sign in instead';
+    if (msg.contains('Password should'))
+      return 'Password must be at least 6 characters';
     return msg;
   }
 }
 
 // ── Result type ───────────────────────────────────────────────
 class AuthResult {
-  final bool    success;
-  final User?   user;
+  final bool success;
+  final User? user;
   final String? error;
-  final bool    cancelled;
+  final bool cancelled;
 
   const AuthResult._({
     required this.success,
@@ -302,6 +253,5 @@ class AuthResult {
   factory AuthResult.cancelled() =>
       AuthResult._(success: false, cancelled: true);
 
-  String get userName =>
-      user?.userMetadata?['full_name'] as String? ?? '';
+  String get userName => user?.userMetadata?['full_name'] as String? ?? '';
 }

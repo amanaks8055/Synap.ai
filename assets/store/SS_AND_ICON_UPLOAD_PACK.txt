@@ -1,0 +1,36 @@
+SYNAP PLAY STORE QUICK UPLOAD PACK
+
+ICON (current app icon):
+1) assets/store/app-icon-512.png  (512x512, upload-ready)
+2) assets/app_icon.png            (source icon, 1024x1024)
+
+PHONE SCREENSHOTS (recommended 1080x1920):
+Use these exact filenames in assets/store/screenshots/
+
+01_discover_ai_tools.png
+Caption: Discover AI tools that actually help
+
+02_compare_tools_fast.png
+Caption: Compare tools by real use case
+
+03_track_free_tier_limits.png
+Caption: Track free-tier limits before they end
+
+04_save_favorites.png
+Caption: Save favorites for instant access
+
+05_startup_kit_lock_and_pro.png
+Caption: Unlock startup kit with Synap Pro
+
+06_voice_assistant_mode.png
+Caption: Chat with smart voice assistant
+
+UPLOAD CHECKLIST:
+- App name: Synap
+- Short description: Discover 1200+ AI tools and chat with a smart voice assistant.
+- Full description: use play_store_metadata.md
+- Feature graphic: 1024x500 (assets/store/feature-graphic-1024x500.png)
+- Phone screenshots: upload 4 to 8 (min 2 required)
+
+NOTE:
+If screenshot files are not created yet, capture from app and save with the same names above.

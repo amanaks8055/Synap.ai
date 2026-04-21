@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 /// Play Store safe tool icon — uses gradient + first letter as default.
 /// Gracefully handles network logos with white backgrounds only when loaded.
@@ -7,6 +6,7 @@ class ToolIcon extends StatelessWidget {
   final String name;
   final String categoryId;
   final String iconUrl;
+  final String iconEmoji;
   final double size;
   final double fontSize;
   final double radius;
@@ -16,6 +16,7 @@ class ToolIcon extends StatelessWidget {
     required this.name,
     required this.categoryId,
     this.iconUrl = '',
+    this.iconEmoji = '',
     this.size = 48,
     this.fontSize = 20,
     this.radius = 12,
@@ -24,14 +25,14 @@ class ToolIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String finalUrl = _getFinalUrl();
-    
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
@@ -45,6 +46,7 @@ class ToolIcon extends StatelessWidget {
   String _getFinalUrl() {
     if (iconUrl.isEmpty) return '';
     final domain = _cleanDomain(iconUrl);
+    if (domain.isEmpty) return '';
     return _brandUrl(domain);
   }
 
@@ -54,7 +56,8 @@ class ToolIcon extends StatelessWidget {
       try {
         final uri = Uri.parse(raw);
         if (raw.contains('logo.clearbit.com')) {
-          domain = uri.pathSegments.last;
+          final segs = uri.pathSegments.where((e) => e.isNotEmpty).toList();
+          domain = segs.isNotEmpty ? segs.last : '';
         } else {
           domain = uri.host;
         }
@@ -69,15 +72,19 @@ class ToolIcon extends StatelessWidget {
     return domain;
   }
 
+  String _brandUrl(String domain) =>
+      'https://logo.clearbit.com/$domain?size=256';
+
   Widget _buildNetworkImage(String url, {required bool isSecondary}) {
     if (url.isEmpty) return _buildPlaceholder();
-    
+
     return Image.network(
       url,
       fit: BoxFit.contain,
-      cacheWidth: (size * 2).toInt(), // 2x for sharp but safe memory usage
-      cacheHeight: (size * 2).toInt(),
-      filterQuality: FilterQuality.medium,
+      cacheWidth:
+          (size * 4).toInt(), // 4x for extreme sharpness on high-res displays
+      cacheHeight: (size * 4).toInt(),
+      filterQuality: FilterQuality.high,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) {
           return Container(
@@ -90,7 +97,8 @@ class ToolIcon extends StatelessWidget {
           child: SizedBox(
             width: 12,
             height: 12,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white.withOpacity(0.5)),
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: Colors.white.withValues(alpha: 0.5)),
           ),
         );
       },
@@ -100,25 +108,28 @@ class ToolIcon extends StatelessWidget {
           return _buildNetworkImage(_googleUrl(domain), isSecondary: true);
         }
         return Container(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           child: Center(
-            child: Icon(Icons.broken_image_rounded, size: size * 0.4, color: Colors.white24),
+            child: Icon(Icons.broken_image_rounded,
+                size: size * 0.4, color: Colors.white24),
           ),
         );
       },
     );
   }
 
-  String _brandUrl(String domain) => 'https://logo.clearbit.com/$domain?size=256';
-
-  String _googleUrl(String domain) => 'https://www.google.com/s2/favicons?domain=$domain&sz=128';
+  String _googleUrl(String domain) =>
+      'https://www.google.com/s2/favicons?domain=$domain&sz=128';
 
   Widget _buildPlaceholder() {
+    final display = iconEmoji.isNotEmpty
+        ? iconEmoji
+        : (name.isNotEmpty ? name[0].toUpperCase() : '?');
     return Center(
       child: Text(
-        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        display,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withValues(alpha: 0.5),
           fontSize: fontSize,
           fontWeight: FontWeight.w800,
           fontFamily: 'Syne',

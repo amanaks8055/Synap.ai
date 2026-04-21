@@ -1,6 +1,8 @@
 // lib/services/voice_kb_service.dart
 
 import '../models/voice_tool_model.dart';
+import '../models/tool_model.dart';
+import '../services/tool_service.dart';
 
 class VoiceKBService {
   static String getResponse(String query) {
@@ -38,110 +40,51 @@ class VoiceKBService {
     return 'Here are popular free AI tools that can help:';
   }
 
+  /// Get all known tools from the directory service.
+  /// Dynamically references ToolService for up-to-date directory access.
+  static List<Tool> get allTools => ToolService.getAllTools();
+
   static List<VoiceToolModel> getTools(String query) {
     final q = query.toLowerCase();
+    List<Tool> filteredTools = [];
+
     if (_matches(q, ['video','edit','reels','shorts','clip','banao'])) {
-      return _videoTools;
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.video || tool.category == ToolCategory.audio).toList();
+    } else if (_matches(q, ['image','photo','picture','tasveer','generate','draw','design'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.image || tool.category == ToolCategory.design).toList();
+    } else if (_matches(q, ['code','coding','program','developer','script'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.code).toList();
+    } else if (_matches(q, ['music','song','audio','gana','beat'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.audio || tool.category == ToolCategory.video).toList();
+    } else if (_matches(q, ['chatgpt','gpt','alternative','replace'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.chat).toList();
+    } else if (_matches(q, ['resume','cv','job','naukri'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.education || tool.category == ToolCategory.productivity).toList();
+    } else if (_matches(q, ['write','writing','likhna','content','blog'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.writing).toList();
+    } else if (_matches(q, ['present','presentation','slides'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.design || tool.category == ToolCategory.research).toList();
+    } else if (_matches(q, ['search','find','dhundh','research'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.research || tool.category == ToolCategory.chat).toList();
+    } else if (_matches(q, ['voice','speech','tts','bolna'])) {
+      filteredTools = allTools.where((tool) => tool.category == ToolCategory.audio).toList();
+    } else {
+      filteredTools = allTools; // Default to all tools if no specific category matches
     }
-    if (_matches(q, ['image','photo','picture','tasveer','generate','draw','design'])) {
-      return _imageTools;
-    }
-    if (_matches(q, ['code','coding','program','developer','script'])) {
-      return _codeTools;
-    }
-    if (_matches(q, ['music','song','audio','gana','beat'])) {
-      return _musicTools;
-    }
-    if (_matches(q, ['chatgpt','gpt','alternative','replace'])) {
-      return _chatTools;
-    }
-    if (_matches(q, ['resume','cv','job','naukri'])) {
-      return _resumeTools;
-    }
-    if (_matches(q, ['write','writing','likhna','content','blog'])) {
-      return _writingTools;
-    }
-    if (_matches(q, ['present','presentation','slides'])) {
-      return _presentationTools;
-    }
-    if (_matches(q, ['search','find','dhundh','research'])) {
-      return _searchTools;
-    }
-    if (_matches(q, ['voice','speech','tts','bolna'])) {
-      return _voiceTools;
-    }
-    return _defaultTools;
+
+    // Convert Tool objects to VoiceToolModel objects
+    return filteredTools.map((tool) => VoiceToolModel(
+      name: tool.name,
+      emoji: tool.iconEmoji,
+      isFree: tool.hasFreeTier,
+      category: tool.category.label,
+      url: tool.websiteUrl,
+      description: tool.description,
+    )).toList();
   }
 
   static bool _matches(String q, List<String> keywords) =>
       keywords.any((k) => q.contains(k));
-
-  // ── Tool lists ──────────────────────────────────────────────
-  static const _videoTools = [
-    VoiceToolModel(name:'CapCut AI',    emoji:'✂️', isFree:true,  category:'Video', url:'capcut.com',    description:'Free AI video editing, auto-captions, effects. Best for Reels & Shorts.'),
-    VoiceToolModel(name:'Runway Gen-3', emoji:'🎬', isFree:false, category:'Video', url:'runwayml.com',  description:'125 free credits/month. AI video generation from text.'),
-    VoiceToolModel(name:'Pika Labs',    emoji:'🎞️', isFree:false, category:'Video', url:'pika.art',      description:'250 free credits. Text to video, easy to use.'),
-  ];
-
-  static const _imageTools = [
-    VoiceToolModel(name:'Ideogram',        emoji:'🎨', isFree:true,  category:'Image', url:'ideogram.ai',     description:'Unlimited free images with perfect text rendering.'),
-    VoiceToolModel(name:'Adobe Firefly',   emoji:'🔥', isFree:false, category:'Image', url:'firefly.adobe.com',description:'25 free credits/month. Commercially safe AI images.'),
-    VoiceToolModel(name:'Microsoft Designer',emoji:'💎',isFree:true, category:'Image', url:'designer.microsoft.com',description:'Free AI image generation using DALL-E 3.'),
-  ];
-
-  static const _codeTools = [
-    VoiceToolModel(name:'Cursor AI',       emoji:'⌨️', isFree:false, category:'Code', url:'cursor.sh',       description:'2000 free completions/month. Best AI code editor available.'),
-    VoiceToolModel(name:'GitHub Copilot',  emoji:'🐙', isFree:false, category:'Code', url:'github.com',      description:'Free for students. AI code completion in VS Code and more.'),
-    VoiceToolModel(name:'Replit AI',       emoji:'💻', isFree:true,  category:'Code', url:'replit.com',      description:'Free AI coding assistant with cloud IDE. No setup needed.'),
-  ];
-
-  static const _musicTools = [
-    VoiceToolModel(name:'Suno AI',    emoji:'🎵', isFree:false, category:'Audio', url:'suno.com',     description:'50 free credits/day. Create full songs with lyrics from text.'),
-    VoiceToolModel(name:'Udio',       emoji:'🎶', isFree:false, category:'Audio', url:'udio.com',     description:'1200 free credits/month. High quality AI music generation.'),
-    VoiceToolModel(name:'Soundraw',   emoji:'🎸', isFree:false, category:'Audio', url:'soundraw.io',  description:'5 free songs/day. Royalty-free background music.'),
-  ];
-
-  static const _chatTools = [
-    VoiceToolModel(name:'Claude',      emoji:'✦',  isFree:false, category:'Chat', url:'claude.ai',         description:'40 free messages/day. Best for long documents and analysis.'),
-    VoiceToolModel(name:'Gemini',      emoji:'♊',  isFree:true,  category:'Chat', url:'gemini.google.com', description:'60 free queries/day. Google integrated, great for research.'),
-    VoiceToolModel(name:'Perplexity',  emoji:'🔍', isFree:false, category:'Search',url:'perplexity.ai',    description:'5 Pro searches/day free. Best AI-powered search engine.'),
-  ];
-
-  static const _resumeTools = [
-    VoiceToolModel(name:'Kickresume',  emoji:'📄', isFree:false, category:'Career', url:'kickresume.com',  description:'Free AI resume builder. ATS-optimized templates.'),
-    VoiceToolModel(name:'Resume.io',   emoji:'📋', isFree:false, category:'Career', url:'resume.io',       description:'AI suggestions for better resume writing.'),
-    VoiceToolModel(name:'ChatGPT',     emoji:'🤖', isFree:false, category:'Chat',   url:'chat.openai.com', description:'Paste your resume, ask for improvements. Free tier: 40 msgs/3h.'),
-  ];
-
-  static const _writingTools = [
-    VoiceToolModel(name:'Claude',      emoji:'✦',  isFree:false, category:'Writing', url:'claude.ai',       description:'Best for long-form writing. 40 free messages daily.'),
-    VoiceToolModel(name:'Writesonic',  emoji:'✍️', isFree:false, category:'Writing', url:'writesonic.com',  description:'Free tier available. Blog posts, ads, social media copy.'),
-    VoiceToolModel(name:'Copy.ai',     emoji:'📝', isFree:false, category:'Writing', url:'copy.ai',         description:'2000 words free/month. Marketing copy and content.'),
-  ];
-
-  static const _presentationTools = [
-    VoiceToolModel(name:'Gamma',       emoji:'📊', isFree:false, category:'Slides', url:'gamma.app',       description:'10 free credits/month. AI presentations in seconds.'),
-    VoiceToolModel(name:'Canva AI',    emoji:'🎨', isFree:true,  category:'Design', url:'canva.com',       description:'Free AI presentation templates and design tools.'),
-    VoiceToolModel(name:'Beautiful.ai',emoji:'✨', isFree:false, category:'Slides', url:'beautiful.ai',    description:'Smart slide templates that design themselves.'),
-  ];
-
-  static const _searchTools = [
-    VoiceToolModel(name:'Perplexity',  emoji:'🔍', isFree:false, category:'Search', url:'perplexity.ai',   description:'5 Pro searches/day. Cites sources, accurate answers.'),
-    VoiceToolModel(name:'Gemini',      emoji:'♊',  isFree:true,  category:'Search', url:'gemini.google.com',description:'Google-powered AI search. 60 queries/day free.'),
-    VoiceToolModel(name:'You.com',     emoji:'🌐', isFree:true,  category:'Search', url:'you.com',         description:'Free unlimited AI search with source citations.'),
-  ];
-
-  static const _voiceTools = [
-    VoiceToolModel(name:'ElevenLabs',  emoji:'🎙️', isFree:false, category:'Voice', url:'elevenlabs.io',   description:'10,000 free characters/month. Most realistic AI voices.'),
-    VoiceToolModel(name:'Murf AI',     emoji:'🔊', isFree:false, category:'Voice', url:'murf.ai',         description:'10 mins free voice generation. 120+ AI voices.'),
-    VoiceToolModel(name:'PlayHT',      emoji:'📢', isFree:false, category:'Voice', url:'play.ht',         description:'12,500 free characters/month. Voice cloning available.'),
-  ];
-
-  static const _defaultTools = [
-    VoiceToolModel(name:'ChatGPT',     emoji:'🤖', isFree:false, category:'Chat',  url:'chat.openai.com', description:'40 messages/3h on GPT-4o. Best all-rounder AI assistant.'),
-    VoiceToolModel(name:'Claude',      emoji:'✦',  isFree:false, category:'Chat',  url:'claude.ai',       description:'40 messages/day. Excellent for writing and analysis.'),
-    VoiceToolModel(name:'Gemini',      emoji:'♊',  isFree:true,  category:'Chat',  url:'gemini.google.com',description:'60 queries/day free. Google integrated AI assistant.'),
-  ];
 
   // ── Track command parser ────────────────────────────────────
   static Map<String, dynamic>? parseTrackCommand(String text) {

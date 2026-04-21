@@ -1,8 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/tracker_tool.dart';
 import 'tracker_event.dart';
 import 'tracker_state.dart';
+
+const String _notifQuotaDateKey = 'synap_notif_quota_date';
+const String _notifQuotaCountKey = 'synap_notif_quota_count';
+const int _notifDailyLimit = 3;
 
 class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
   final FlutterLocalNotificationsPlugin? notifications;
@@ -170,6 +175,9 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
     required String body,
   }) async {
     try {
+      final allowed = await _consumeNotificationQuota();
+      if (!allowed) return;
+
       await notifications?.show(
         DateTime.now().millisecondsSinceEpoch ~/ 1000,
         title,
@@ -185,5 +193,27 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
         ),
       );
     } catch (_) {}
+  }
+
+  Future<bool> _consumeNotificationQuota() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final today = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    final savedDate = prefs.getString(_notifQuotaDateKey);
+    var count = prefs.getInt(_notifQuotaCountKey) ?? 0;
+
+    if (savedDate != today) {
+      count = 0;
+      await prefs.setString(_notifQuotaDateKey, today);
+      await prefs.setInt(_notifQuotaCountKey, 0);
+    }
+
+    if (count >= _notifDailyLimit) {
+      return false;
+    }
+
+    await prefs.setInt(_notifQuotaCountKey, count + 1);
+    return true;
   }
 }

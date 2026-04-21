@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/moving_border_button.dart';
 import '../theme/app_theme.dart';
 import '../services/user_profile_service.dart';
 import '../services/auth_service.dart';
+import '../blocs/premium/premium_bloc.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: UserProfileService.nameNotifier.value);
+    context.read<PremiumBloc>().add(PremiumInitialized());
   }
 
   @override
@@ -81,6 +84,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                   const SizedBox(height: 30),
+                  _buildSubscriptionBadge(),
+                  const SizedBox(height: 20),
                   _buildNotificationSection(),
                   const SizedBox(height: 20),
                   _buildLogoutButton(),
@@ -93,6 +98,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildSubscriptionBadge() {
+    return BlocBuilder<PremiumBloc, PremiumState>(
+      builder: (context, premiumState) {
+        final hasPlan = premiumState.isPremium;
+        final planLabel = !hasPlan
+            ? 'FREE'
+            : (premiumState.isProfessional ? 'PROFESSIONAL' : 'STUDENT');
+        final badgeColors = !hasPlan
+            ? const [Color(0xFF2D3748), Color(0xFF1A202C)]
+            : (premiumState.isProfessional
+                ? const [Color(0xFFFFD700), Color(0xFFFF8C00)]
+                : const [Color(0xFF00D4FF), Color(0xFF7C3AED)]);
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D141C),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: SynapColors.accent, size: 20),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Subscription',
+                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: badgeColors),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  planLabel,
+                  style: TextStyle(
+                    color: hasPlan ? Colors.black : Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAvatarPickerCard() {
     return ValueListenableBuilder<int>(
       valueListenable: UserProfileService.avatarIndexNotifier,
@@ -102,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF0D141C),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Column(
             children: [
@@ -156,9 +215,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               height: isSelected ? 48 : 40,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isSelected ? SynapColors.accent.withOpacity(0.1) : const Color(0xFF161B22),
+                                color: isSelected ? SynapColors.accent.withValues(alpha: 0.1) : const Color(0xFF161B22),
                                 border: Border.all(
-                                  color: isSelected ? SynapColors.accent : Colors.white.withOpacity(0.05),
+                                  color: isSelected ? SynapColors.accent : Colors.white.withValues(alpha: 0.05),
                                   width: isSelected ? 2 : 1,
                                 ),
                               ),
@@ -182,54 +241,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildNameField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return BlocBuilder<PremiumBloc, PremiumState>(
+      builder: (context, premiumState) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
             children: [
-              if (!_isEditingName) ...[
-                ValueListenableBuilder<String>(
-                  valueListenable: UserProfileService.nameNotifier,
-                  builder: (context, name, _) {
-                    return Text(
-                      name,
-                      style: const TextStyle(fontFamily: 'Syne', fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_rounded, color: SynapColors.accent, size: 18),
-                  onPressed: () => setState(() => _isEditingName = true),
-                ),
-              ] else ...[
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    autofocus: true,
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                    decoration: InputDecoration(
-                      hintText: 'Enter your name',
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.2)),
-                      border: UnderlineInputBorder(borderSide: BorderSide(color: SynapColors.accent)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!_isEditingName) ...[
+                    Flexible(
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: UserProfileService.nameNotifier,
+                        builder: (context, name, _) {
+                          return Text(
+                            name,
+                            style: const TextStyle(
+                                fontFamily: 'Syne',
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white),
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        },
+                      ),
                     ),
-                    onSubmitted: (_) => _saveName(),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.check_circle_rounded, color: Colors.greenAccent),
-                  onPressed: _saveName,
-                ),
-              ],
+                    if (premiumState.isPremium) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          premiumState.isProfessional ? 'PROFESSIONAL' : 'STUDENT',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                    IconButton(
+                      icon: const Icon(Icons.edit_rounded,
+                          color: SynapColors.accent, size: 18),
+                      onPressed: () => setState(() => _isEditingName = true),
+                    ),
+                  ] else ...[
+                    Expanded(
+                      child: TextField(
+                        controller: _nameController,
+                        autofocus: true,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                        decoration: InputDecoration(
+                          hintText: 'Enter your name',
+                          hintStyle:
+                              TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: SynapColors.accent)),
+                        ),
+                        onSubmitted: (_) => _saveName(),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.check_circle_rounded,
+                          color: Colors.greenAccent),
+                      onPressed: _saveName,
+                    ),
+                  ],
+                ],
+              ),
+              Text(
+                'Synap AI Enthusiast',
+                style: TextStyle(
+                    fontFamily: 'DM Sans',
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.3)),
+              ),
             ],
           ),
-          Text(
-            'Synap AI Enthusiast',
-            style: TextStyle(fontFamily: 'DM Sans', fontSize: 12, color: Colors.white.withOpacity(0.3)),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -240,13 +349,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF0D141C),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.03)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
         ),
         child: Column(
           children: [
             Text(value, style: const TextStyle(fontFamily: 'Syne', fontSize: 18, fontWeight: FontWeight.w800, color: SynapColors.accent)),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontFamily: 'DM Sans', fontSize: 9, color: Colors.white.withOpacity(0.4), fontWeight: FontWeight.bold)),
+            Text(label, style: TextStyle(fontFamily: 'DM Sans', fontSize: 9, color: Colors.white.withValues(alpha: 0.4), fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -259,7 +368,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF0D141C),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.03)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
       ),
       child: Row(
         children: [
@@ -301,9 +410,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.redAccent.withOpacity(0.05),
+          color: Colors.redAccent.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.redAccent.withOpacity(0.1)),
+          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.1)),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,

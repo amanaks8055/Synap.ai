@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, {String? freeTier, double? price, String? priceTier, String? tips}) {
   return {
@@ -14,8 +15,8 @@ Map<String, dynamic> t(String id, {String? freeTier, double? price, String? pric
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -39,7 +40,7 @@ void main() async {
     t('parabola', freeTier:'Free 14-day trial on site', price:80, priceTier:'Solo monthly annual', tips:'Best for complex e-com data flows | No-code way to build data pipelines'),
     t('talend', freeTier:'Free trial available on site', price:0, tips:'Owned by Qlik | Industry giant for data integration | AI-powered "Data Quality" help'),
     t('eightfold-ai', freeTier:'Institutional only (Strategic)', price:0, tips:'The pioneer of skills-based hiring | AI-powered "Talent Intelligence" platform'),
-    t('tome-ai', freeTier:'Free basic credits available', price:10, priceTier:'Pro monthly annual', tips:'Best for fast generative slide decks | USE "DALL-E" mode for unique visuals'),
+    t('gamma-app', freeTier:'Free basic credits available', price:10, priceTier:'Pro monthly annual', tips:'Best for fast generative slide decks | Use templates for investor-ready visuals'),
     t('musicgen', freeTier:'Completely free open source', price:0, tips:'Meta\'s high-end music generator | Best for researchers and local audiophiles'),
     t('trip-planner', freeTier:'Completely free basic trip', price:0, tips:'Best for fast itinerary generation | AI-powered "Route" and "Booking" help'),
     t('charisma-ai', freeTier:'Free trial available', price:0, tips:'Leading AI for interactive characters and storytelling | Best for RPG and game writers'),

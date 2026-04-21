@@ -3,7 +3,7 @@ INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,web
 
 -- ━━━ PRESENTATION & SLIDES AI ━━━
 ('beautiful-ai','Beautiful.ai','beautiful-ai','design','AI presentation maker with smart slide templates and design rules.','🎨','https://beautiful.ai',true,false,5200),
-('tome-ai','Tome','tome','design','AI presentation and storytelling platform creating decks from prompts.','📖','https://tome.app',true,false,6800),
+('pitch-ai','Pitch','pitch','design','Collaborative AI presentation software with smart formatting and team workflows.','🎯','https://pitch.com',true,false,6800),
 ('slides-ai','SlidesAI','slides-ai','design','AI Google Slides add-on generating presentations from text.','📊','https://slidesai.io',true,false,3600),
 ('pitch-ai','Pitch','pitch','design','Collaborative AI presentation software with smart formatting.','🎯','https://pitch.com',true,false,2800),
 ('sendsteps','Sendsteps AI','sendsteps','design','AI interactive presentation maker with audience engagement.','📱','https://sendsteps.com',true,false,1800),

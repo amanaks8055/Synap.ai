@@ -211,9 +211,9 @@
   },
   {
     "id": 36,
-    "handle": "luma-ai",
-    "website": "https://lumalabs.ai",
-    "description": "Luma AI: Capture the world in lifelike 3D with photorealistic detail."
+    "handle": "runway-ai",
+    "website": "https://runwayml.com",
+    "description": "Creative AI suite for generating and editing video, image, and motion content."
   },
   {
     "id": 37,
@@ -39319,9 +39319,9 @@
   },
   {
     "id": 6554,
-    "handle": "toma",
-    "website": "https://toma.so",
-    "description": "AI automation platform for automotive dealerships, automating calls and scheduling."
+    "handle": "fireflies-ai",
+    "website": "https://fireflies.ai",
+    "description": "AI meeting assistant for call recording, transcription, summaries, and team collaboration."
   },
   {
     "id": 6555,
@@ -54889,9 +54889,9 @@
   },
   {
     "id": 9149,
-    "handle": "landr",
-    "website": "https://www.landr.com",
-    "description": "An end-to-end music production platform with AI mastering, distribution, plugins, and courses."
+    "handle": "bandlab-mastering",
+    "website": "https://www.bandlab.com",
+    "description": "Online music creation and mastering platform with collaboration and publishing tools."
   },
   {
     "id": 9150,
@@ -76455,7 +76455,7 @@
     "id": 12743,
     "handle": "orbplugins-com",
     "website": "https://orbplugins.com",
-    "description": "LANDR provides audio mastering, distribution, collaboration, and music creation tools."
+    "description": "Orb Plugins offers creative audio plugins and music production tools for composers and producers."
   },
   {
     "id": 12744,
@@ -80467,9 +80467,9 @@
   },
   {
     "id": 13412,
-    "handle": "tome",
-    "website": "https://tome.app",
-    "description": "Tome is an AI-powered storytelling tool and sales assistant for account research and meeting preparation."
+    "handle": "gamma-ai",
+    "website": "https://gamma.app",
+    "description": "AI platform for creating presentations, docs, and webpages from prompts and outlines."
   },
   {
     "id": 13413,
@@ -103609,9 +103609,9 @@
   },
   {
     "id": 17269,
-    "handle": "luma-dream-machine",
-    "website": "https://lumalabs.ai/dream-machine",
-    "description": "AI video generator creating realistic videos from text and images with tailored subscriptions."
+    "handle": "pika-labs",
+    "website": "https://pika.art",
+    "description": "AI video generator for fast text-to-video creation and social-ready edits."
   },
   {
     "id": 17270,
@@ -112095,7 +112095,7 @@
     "id": 18683,
     "handle": "video-ai-hub",
     "website": "https://videoaihub.ai",
-    "description": "A platform to explore and compare AI video generation tools like Minimax AI and Luma AI."
+    "description": "A platform to explore and compare AI video generation tools like Minimax AI and Runway."
   },
   {
     "id": 18684,
@@ -112609,9 +112609,9 @@
   },
   {
     "id": 18769,
-    "handle": "luma-ai-video-generator-free-online-by-dream-machine",
+    "handle": "runway-video-generator-free-online",
     "website": "https://lunaai.video",
-    "description": "Free online AI video generator powered by Luma AI's Dream Machine."
+    "description": "Free online AI video generator inspired by modern cinematic text-to-video workflows."
   },
   {
     "id": 18770,

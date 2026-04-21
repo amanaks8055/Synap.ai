@@ -16,10 +16,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/moving_border_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onDone;
-  const SplashScreen({super.key, required this.onDone});
+  final Future<void> dataReady;
+  const SplashScreen({super.key, required this.onDone, required this.dataReady});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -38,10 +40,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   bool _glitching = false;
   Timer? _glitchTimer;
-  Timer? _transitionTimer;
 
   // Matrix rain columns — initialized once
-  List<_RainColumn>? _rainColumns;
+  List<_IconDrop>? _iconDrops;
 
   @override
   void initState() {
@@ -80,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
       _brandController.forward();
     });
 
-    // ── Periodic glitch ─────────────────────────────────────
+    // ── Periodic glitch ─────────────────────────────────
     _glitchTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (mounted) _triggerGlitch();
     });
@@ -89,12 +90,15 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) _triggerGlitch();
     });
 
-    // ── Auto-transition after 4s (Updated) ──────────────────
-    _transitionTimer = Timer(const Duration(milliseconds: 4000), () {
-      if (!mounted) return;
-      _fadeOutController.forward().then((_) {
-        if (mounted) widget.onDone();
-      });
+    // ── Auto-transition when BOTH 2s elapsed AND tools loaded ──
+    _waitAndTransition();
+  }
+
+  Future<void> _waitAndTransition() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+    _fadeOutController.forward().then((_) {
+      if (mounted) widget.onDone();
     });
   }
 
@@ -115,7 +119,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _glitchTimer?.cancel();
-    _transitionTimer?.cancel();
     _rainController.dispose();
     _brandController.dispose();
     _fadeOutController.dispose();
@@ -135,16 +138,8 @@ class _SplashScreenState extends State<SplashScreen>
         opacity: _fadeOut,
         child: Stack(
           children: [
-            // ── 1. Matrix Rain (full screen) ───────────────
-            AnimatedBuilder(
-              animation: _rainController,
-              builder: (_, __) => CustomPaint(
-                painter: _MatrixRainPainter(
-                  columns: _getOrInitColumns(size),
-                ),
-                size: size,
-              ),
-            ),
+            // ── 1. AI Tool Icon Rain (full screen) ─────────
+            _buildToolIconRain(size),
 
             // ── 2. Vignette overlay ─────────────────────────
             Container(
@@ -218,26 +213,83 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  List<_RainColumn> _getOrInitColumns(Size size) {
-    if (_rainColumns == null) {
-      // Increased column width for larger characters (22px)
-      final colWidth = 24.0;
-      final cols = (size.width / colWidth).floor();
+  List<_IconDrop> _getOrInitDrops(Size size) {
+    if (_iconDrops == null) {
       final rng = Random();
-      _rainColumns = List.generate(cols, (i) => _RainColumn(
-        x: i * colWidth,
-        y: rng.nextDouble() * -size.height,
-        // Increased speed range (3.0 to 9.0)
-        speed: 3.0 + rng.nextDouble() * 6.0,
-        colorType: rng.nextDouble() < 0.55 ? 0 : rng.nextDouble() < 0.8 ? 1 : 2,
-        word: rng.nextDouble() < 0.2
-            ? _aiWords[rng.nextInt(_aiWords.length)]
-            : null,
-        height: size.height,
-        rng: rng,
-      ));
+      final domains = List<String>.from(_toolDomains)..shuffle(rng);
+      _iconDrops = List.generate(min(20, domains.length), (i) {
+        final domain = domains[i % domains.length];
+        return _IconDrop(
+          x: rng.nextDouble() * (size.width - 60),
+          startOffset: rng.nextDouble(),
+          speed: 0.15 + rng.nextDouble() * 0.25,
+          opacity: 0.3 + rng.nextDouble() * 0.4,
+          size: 40 + rng.nextDouble() * 18,
+          iconUrl: 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://$domain&size=128',
+        );
+      });
     }
-    return _rainColumns!;
+    return _iconDrops!;
+  }
+
+  Widget _buildToolIconRain(Size size) {
+    return AnimatedBuilder(
+      animation: _rainController,
+      builder: (_, __) {
+        final drops = _getOrInitDrops(size);
+        return SizedBox(
+          width: size.width,
+          height: size.height,
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: drops.map((drop) {
+              final cycleH = size.height + drop.size + 60;
+              final totalTravel = _rainController.value * drop.speed * 3 * cycleH;
+              final y = ((drop.startOffset * cycleH) + totalTravel) % cycleH - (drop.size + 30);
+              return Positioned(
+                left: drop.x,
+                top: y,
+                child: Opacity(
+                  opacity: drop.opacity,
+                  child: Container(
+                    width: drop.size,
+                    height: drop.size,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(drop.size * 0.22),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF00DCE8).withOpacity(drop.opacity * 0.5),
+                          blurRadius: 12,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(drop.size * 0.22),
+                      child: CachedNetworkImage(
+                        imageUrl: drop.iconUrl,
+                        width: drop.size,
+                        height: drop.size,
+                        fit: BoxFit.contain,
+                        memCacheWidth: 96,
+                        memCacheHeight: 96,
+                        fadeInDuration: Duration.zero,
+                        placeholder: (_, __) => Container(
+                          color: const Color(0xFF00DCE8).withOpacity(0.06),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          color: const Color(0xFF00DCE8).withOpacity(0.06),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
   }
 
   // ─────────────────────────────────────────────────────────
@@ -274,7 +326,7 @@ class _SplashScreenState extends State<SplashScreen>
         AnimatedDefaultTextStyle(
           duration: const Duration(milliseconds: 50),
           style: GoogleFonts.syne(
-            fontSize: 64,
+            fontSize: 52,
             fontWeight: FontWeight.w800,
             letterSpacing: -2,
             color: Colors.white,
@@ -289,7 +341,33 @@ class _SplashScreenState extends State<SplashScreen>
                     Shadow(color: const Color(0xFF00DCE8).withOpacity(0.2), blurRadius: 80),
                   ],
           ),
-          child: const Text('Synap'),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Synap'),
+                Text(
+                  '.AI',
+                  style: GoogleFonts.syne(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    shadows: _glitching
+                        ? [
+                            const Shadow(color: Color(0xFFFF0080), offset: Offset(-2, 0), blurRadius: 0),
+                            const Shadow(color: Color(0xFF00FFFF), offset: Offset(2, 0), blurRadius: 0),
+                            Shadow(color: const Color(0xFF00DCE8).withOpacity(0.6), blurRadius: 30),
+                          ]
+                        : [
+                            Shadow(color: const Color(0xFF00DCE8).withOpacity(0.4), blurRadius: 30),
+                            Shadow(color: const Color(0xFF00DCE8).withOpacity(0.15), blurRadius: 60),
+                          ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
 
         const SizedBox(height: 8),
@@ -308,169 +386,38 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // ── AI-themed words for matrix rain ─────────────────────
-  static const _aiWords = [
-    'imagine', 'generate', 'prompt', 'model', 'neural', 'diffuse',
-    'tokens', 'context', 'embed', 'latent', 'synap', 'discover',
-    'gpt', 'llm', 'vector', 'inference', 'weights', 'attention',
-    'openai', 'claude', 'gemini', 'vision', 'audio', 'code',
-    'tools', 'free', 'paid', 'api', 'train', 'search',
+  // ── AI tool domains for icon rain ───────────────────────
+  static const _toolDomains = [
+    'chat.openai.com', 'claude.ai', 'gemini.google.com', 'midjourney.com',
+    'github.com', 'notion.so', 'canva.com', 'figma.com',
+    'perplexity.ai', 'jasper.ai', 'grammarly.com', 'synthesia.io',
+    'runwayml.com', 'stability.ai', 'huggingface.co', 'replicate.com',
+    'writesonic.com', 'copy.ai', 'descript.com', 'loom.com',
+    'otter.ai', 'beautiful.ai', 'pitch.com', 'gamma.app',
+    'poe.com', 'you.com', 'zapier.com', 'make.com',
+    'elevenlabs.io', 'heygen.com', 'invideo.io', 'photoroom.com',
   ];
 }
 
 // ══════════════════════════════════════════════════════════════
-// MATRIX RAIN PAINTER
-// AI-themed words + random chars, multi-speed/color columns
+// ICON DROP — data for a single falling tool icon
 // ══════════════════════════════════════════════════════════════
-class _MatrixRainPainter extends CustomPainter {
-  final List<_RainColumn> columns;
-  static DateTime _lastUpdate = DateTime.now();
-
-  _MatrixRainPainter({required this.columns});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final now = DateTime.now();
-    final dt = (now.difference(_lastUpdate).inMicroseconds / 16667).clamp(0.5, 3.0);
-    _lastUpdate = now;
-
-    // Subtle fade trail (creates the fading tail effect)
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = const Color(0x15000000),
-    );
-
-    final tp = TextPainter(textDirection: TextDirection.ltr);
-
-    for (final col in columns) {
-      col.update(dt, size.height);
-
-      // ── Draw trailing chars with fade ──────────────────
-      final trailLen = col.trail.length;
-      for (int t = 0; t < trailLen; t++) {
-        // Increased character vertical spacing due to size (24px)
-        final charY = col.y - (trailLen - t) * 24.0;
-        if (charY < -24 || charY > size.height) continue;
-
-        final alpha = (t / trailLen);
-        final Color c;
-        switch (col.colorType) {
-          case 0: // Cyan
-            c = Color.fromRGBO(100, 230, 255, alpha * 0.75);
-            break;
-          case 1: // Teal
-            c = Color.fromRGBO(0, 190, 170, alpha * 0.65);
-            break;
-          default: // Soft white
-            c = Color.fromRGBO(180, 220, 230, alpha * 0.45);
-        }
-
-        tp.text = TextSpan(
-          text: col.trail[t],
-          style: TextStyle(
-            fontSize: 22, // Increased from 13
-            color: c,
-            fontFamily: 'monospace',
-            height: 1.0,
-          ),
-        );
-        tp.layout();
-        tp.paint(canvas, Offset(col.x, charY));
-      }
-
-      // ── Draw head char — brightest ─────────────────────
-      if (col.y >= 0 && col.y <= size.height) {
-        final Color headColor;
-        switch (col.colorType) {
-          case 0:
-            headColor = const Color(0xFFAAF0FF);
-            break;
-          case 1:
-            headColor = const Color(0xFF00DCBA);
-            break;
-          default:
-            headColor = const Color(0xFFCCE8F0);
-        }
-
-        tp.text = TextSpan(
-          text: col.headChar,
-          style: TextStyle(
-            fontSize: 22, // Increased from 13
-            color: headColor,
-            fontFamily: 'monospace',
-            fontWeight: FontWeight.bold,
-            height: 1.0,
-          ),
-        );
-        tp.layout();
-        tp.paint(canvas, Offset(col.x, col.y));
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-// ── Single rain column data ─────────────────────────────────
-class _RainColumn {
+class _IconDrop {
   final double x;
-  double y;
+  final double startOffset;
   final double speed;
-  final int colorType; // 0=cyan, 1=teal, 2=white
-  final String? word;
-  final double height;
-  final Random rng;
+  final double opacity;
+  final double size;
+  final String iconUrl;
 
-  final List<String> trail = [];
-  String headChar = ' ';
-  double _accumulator = 0;
-
-  static const String _chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#\$%^&*()_+-=[]{}|;:,./<>?';
-
-  _RainColumn({
+  _IconDrop({
     required this.x,
-    required this.y,
+    required this.startOffset,
     required this.speed,
-    required this.colorType,
-    required this.word,
-    required this.height,
-    required this.rng,
-  }) {
-    headChar = _nextChar(0);
-  }
-
-  String _nextChar(int trailIdx) {
-    if (word != null && trailIdx < word!.length) {
-      return word![trailIdx];
-    }
-    return _chars[rng.nextInt(_chars.length)];
-  }
-
-  void update(double dt, double screenHeight) {
-    y += speed * dt;
-    _accumulator += dt;
-
-    // Occasionally randomize head char
-    if (rng.nextDouble() < 0.12) {
-      headChar = _nextChar(trail.length);
-    }
-
-    // Add to trail every ~1 frame
-    if (_accumulator >= 1.0 && trail.length < 18) { // Slightly shorter trail for larger chars
-      trail.add(headChar);
-      _accumulator = 0;
-    }
-
-    // Reset when below screen
-    if (y > screenHeight + 100) {
-      y = rng.nextDouble() * -screenHeight * 0.4;
-      trail.clear();
-      _accumulator = 0;
-      headChar = _nextChar(0);
-    }
-  }
+    required this.opacity,
+    required this.size,
+    required this.iconUrl,
+  });
 }
 
 // ══════════════════════════════════════════════════════════════

@@ -1,5 +1,15 @@
-const SUPABASE_URL = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+try {
+  importScripts('config.js');
+} catch (_) {
+  // Optional local-only config file.
+}
+
+const SUPABASE_URL = self.SUPABASE_URL;
+const SUPABASE_KEY = self.SUPABASE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn('[Synap] Missing Supabase config. Create extension/config.js');
+}
 
 // ── Storage ──────────────────────────────────────────────────
 function getData() {

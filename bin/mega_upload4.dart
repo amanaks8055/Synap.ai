@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -91,7 +92,7 @@ void main() async {
     t('brandwatch','Brandwatch','support','AI consumer intelligence and social listening platform.','https://brandwatch.com',false,false,3800, freeTier:'Demo available', price:0, tips:'Listen to millions of conversations | Detect emerging trends | Crisis management'),
 
     // ━━━ AUDIO MASTERING & FX ━━━
-    t('landr','LANDR','audio','AI-powered audio mastering for musicians and producers.','https://landr.com',true,true,5400, freeTier:'Limited free masters with ads', price:12, priceTier:'Studio monthly unlimited masters', tips:'Industry standard AI mastering | Distribution included | Collaborative tools'),
+    t('bandlab-mastering','BandLab Mastering','audio','AI-powered online mastering and music creation platform for artists.','https://bandlab.com',true,true,5400, freeTier:'Free mastering and publishing', price:0, tips:'Easy mastering flow | Built-in collaboration tools | Great for indie musicians'),
     t('emasters','eMastered','audio','Professional AI audio mastering engine developed by Grammy winners.','https://emastered.com',false,false,3200, freeTier:'Free preview of master', price:13, priceTier:'Annual billed monthly', tips:'Customizable mastering engine | Fast results | Professional loudness'),
     t('cloudbounce','CloudBounce','audio','Fast and affordable AI mastering for desktop and cloud.','https://cloudbounce.com',true,false,1800, freeTier:'Free preview of master', price:5, priceTier:'Per track starting price', tips:'Loudness control | Desktop app available | Good for quick demos'),
     t('izotope-ozone','iZotope Ozone','audio','The industry standard mastering software with AI Assistant.','https://izotope.com',false,true,6800, freeTier:'Free trial available', price:249, priceTier:'One-time purchase (desktop)', tips:'Mastering Assistant sets initial chain | Tonal balance control | Essential for pros'),

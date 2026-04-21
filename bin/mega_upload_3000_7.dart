@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -81,7 +82,7 @@ void main() async {
     t('coinmarketcap-ai','CoinMarketCap','business','The most popular crypto data site with AI-powered "Search" and news.','https://coinmarketcap.com',true,true,999999, freeTier:'Completely free for everyone', price:0, tips:'Owned by Binance | AI-powered "Price Estimates" | Industry standard'),
     t('nansen-ai-pro','Nansen','business','High-end blockchain analytics platform using AI for "Smart Money" labels.','https://nansen.ai',true,true,84000, freeTier:'Free basic dashboard online', price:99, priceTier:'Standard monthly base', tips:'Best for pro traders | AI identifies whale wallets | High alpha signal'),
     t('dune-ai-pro','Dune Analytics','business','Community-powered crypto data with AI-powered "DuneSQL" tools.','https://dune.com',true,true,150000, freeTier:'Free basic public dashboards', price:400, priceTier:'Pro monthly base', tips:'Best for custom reports | AI generates SQL for you | Open data focus'),
-    t('chainalysis-ai','Chainalysis','business','Leading crypto investigation platform used by gov and banks with AI.','https://chainalysis.com',false,true,45000, freeTier:'Institutional only', price:0, tips:'Industry standard for compliance | AI identies illicit flow | highly secure'),
+    t('trm-labs-ai','TRM Labs','business','Blockchain intelligence platform for financial crime detection with AI workflows.','https://trmlabs.com',false,true,45000, freeTier:'Institutional only', price:0, tips:'Trusted by regulators and exchanges | AI-powered risk monitoring | Enterprise-grade security'),
     t('arkham-ai-pro','Arkham Intelligence','business','Crypto intelligence platform using AI to "Deanonymize" the blockchain.','https://arkhamintelligence.com',true,true,120000, freeTier:'Completely free for users (Beta)', price:0, tips:'AI-powered "ULTRA" engine | Track any entity with AI | Viral and high tech'),
     t('the-graph-ai-pro','The Graph','code','Decentralized indexing protocol for Web3 with AI-powered "Subgraphs".','https://thegraph.com',true,true,58000, freeTier:'Free for developers credits', price:0, tips:'The Google of Web3 | AI-powered data queries | Crucial for dApps'),
 

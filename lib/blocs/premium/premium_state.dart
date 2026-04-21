@@ -20,6 +20,8 @@ class PremiumState {
   final List<ProductDetails> products;  // from Play Store
   final String? errorMessage;
   final bool billingAvailable;
+  final DateTime? expiryDate;           // When subscription expires
+  final bool isAutoRenewing;            // Whether current plan auto-renews
 
   const PremiumState({
     required this.status,
@@ -29,6 +31,8 @@ class PremiumState {
     this.activeTier,
     this.activeProductId,
     this.errorMessage,
+    this.expiryDate,
+    this.isAutoRenewing = false,
   });
 
   factory PremiumState.initial() => const PremiumState(
@@ -48,6 +52,19 @@ class PremiumState {
   bool get isStudent      => activeTier == PlanTier.student;
   bool get isProfessional => activeTier == PlanTier.professional;
 
+  // Check if subscription has expired
+  bool get isExpired {
+    if (expiryDate == null) return false;
+    return DateTime.now().isAfter(expiryDate!);
+  }
+
+  // Days remaining until expiry
+  int get daysRemaining {
+    if (expiryDate == null) return 0;
+    if (isExpired) return 0;
+    return expiryDate!.difference(DateTime.now()).inDays;
+  }
+
   // Get live price from Play Store (fallback to static)
   String livePrice(String productId, String fallback) {
     try {
@@ -65,16 +82,21 @@ class PremiumState {
     List<ProductDetails>? products,
     String? errorMessage,
     bool? billingAvailable,
+    DateTime? expiryDate,
+    bool? isAutoRenewing,
     bool clearError = false,
+    bool clearActive = false,
   }) {
     return PremiumState(
       status: status ?? this.status,
       isPremium: isPremium ?? this.isPremium,
-      activeTier: activeTier ?? this.activeTier,
-      activeProductId: activeProductId ?? this.activeProductId,
+      activeTier: clearActive ? null : (activeTier ?? this.activeTier),
+      activeProductId: clearActive ? null : (activeProductId ?? this.activeProductId),
       products: products ?? this.products,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       billingAvailable: billingAvailable ?? this.billingAvailable,
+      expiryDate: expiryDate ?? this.expiryDate,
+      isAutoRenewing: isAutoRenewing ?? this.isAutoRenewing,
     );
   }
 }

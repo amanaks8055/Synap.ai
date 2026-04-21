@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -45,7 +46,7 @@ void main() async {
     t('upscayl-pro-ai','Upscayl','design','Free and open source AI image upscaler that works locally on your computer.','https://upscayl.org',true,true,150000, freeTier:'Completely free open source', price:0, tips:'Runs on your GPU | Privacy-first | Support for multiple AI models'),
     t('kling-ai-video','Kling AI','video','Next-generation AI video generator from text with extreme realism and consistency.','https://klingai.com',true,true,92000, freeTier:'Free daily credits', price:10, priceTier:'Standard monthly', tips:'Generate 1080p realistic videos | Best for storytelling | Highly competitive with Sora'),
     t('pika-labs-ai','Pika','video','Leading AI platform for animating images and generating videos from text.','https://pika.art',true,true,180000, freeTier:'Free daily credits', price:10, priceTier:'Starter monthly', tips:'"Modify Region" AI tool | Best for realistic movement | Integrated lip-sync'),
-    t('luma-dream-machine','Luma Dream Machine','video','High-fidelity AI video generator that understands the physics of the world.','https://lumalabs.ai/dream-machine',true,true,150000, freeTier:'30 free generations monthly', price:30, priceTier:'Standard monthly', tips:'Physics-aware video gen | Create 5s realistic clips | High resolution'),
+    t('runway-gen3-video','Runway Gen-3','video','High-fidelity AI video generation and editing model for cinematic scenes.','https://runwayml.com',true,true,150000, freeTier:'Starter credits available', price:15, priceTier:'Standard monthly', tips:'Strong motion control tools | Great for storytelling and ad creatives | Trusted by creators'),
     t('leonardo-ai-pro','Leonardo.ai','design','Full-stack AI image generation platform for creators and developers.','https://leonardo.ai',true,true,250000, freeTier:'150 daily free tokens', price:12, priceTier:'Apprentice monthly', tips:'Train your own models | AI-powered canvas | API available for devs'),
     t('playground-ai-pro','Playground','design','Online AI image creator that makes it easy for anyone to create art.','https://playground.com',true,true,180000, freeTier:'50 free images daily', price:15, priceTier:'Pro monthly', tips:'Easy integrated editor | Community-driven prompt search | High quality models'),
 

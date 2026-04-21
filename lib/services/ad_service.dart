@@ -30,7 +30,7 @@ class AdService extends ChangeNotifier {
     // Web pe google_mobile_ads supported nahi hai
     if (kIsWeb) {
       _initialized = true;
-      debugPrint('⏭️ AdMob skipped on web');
+
       return;
     }
 
@@ -39,13 +39,13 @@ class AdService extends ChangeNotifier {
     // Request config (GDPR / CCPA ke liye — optional)
     await MobileAds.instance.updateRequestConfiguration(
       RequestConfiguration(
-        testDeviceIds: AdConfig.useTestAds ? ['YOUR_TEST_DEVICE_ID'] : [],
+        testDeviceIds: AdConfig.useTestAds ? ['ED12F95C35ED76BBE888EF1ACD867067'] : [],
         tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
       ),
     );
 
     _initialized = true;
-    debugPrint('✅ AdMob initialized');
+
 
     // Native pool preload
     _preloadNativePool();
@@ -58,11 +58,10 @@ class AdService extends ChangeNotifier {
       size: AdSize.banner, // 320x50
       request: _buildRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (_) => debugPrint('🟢 Banner loaded'),
-        onAdFailedToLoad: (ad, err) {
-          debugPrint('🔴 Banner failed: ${err.message}');
-          ad.dispose();
-        },
+
+          onAdFailedToLoad: (ad, err) {
+            ad.dispose();
+          },
       ),
     );
   }
@@ -87,14 +86,12 @@ class AdService extends ChangeNotifier {
         onAdLoaded: (ad) {
           _readyNatives.add(ad as NativeAd);
           notifyListeners();
-          debugPrint('🟢 Native loaded (pool: ${_readyNatives.length})');
         },
         onAdFailedToLoad: (ad, err) {
-          debugPrint('🔴 Native failed: ${err.message}');
           ad.dispose();
         },
-        onAdImpression: (_) => debugPrint('📊 Native impression'),
-        onAdClicked: (_) => debugPrint('👆 Native clicked'),
+
+
       ),
     )..load();
 

@@ -37,7 +37,7 @@ class AdConfig {
   // ────────────────────────────────────────
   //  Master toggle
   // ────────────────────────────────────────
-  static const bool useTestAds = false;
+  static const bool useTestAds = true;
 
   // ────────────────────────────────────────
   //  Web pe ads supported nahi hain

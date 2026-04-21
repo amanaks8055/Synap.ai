@@ -119,7 +119,7 @@ INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,web
 ('beautiful-ai','Beautiful.ai','beautiful-ai','research','AI presentation maker with smart slide design and auto-formatting.','✨','https://beautiful.ai',false,false,3600),
 ('slideai','SlideAI','slideai','research','AI that generates PowerPoint presentations from text prompts instantly.','📊','https://slideai.co',true,false,2100),
 ('gamma-app','Gamma App','gamma','research','AI presentation, doc, and webpage creator from outline or paste.','🔷','https://gamma.app',true,true,7800),
-('tome-app','Tome','tome','research','AI storytelling tool generating beautiful presentations and narratives.','📖','https://tome.app',true,false,4200),
+('gamma-app','Gamma App','gamma','research','AI presentation, doc, and webpage creator from prompts and outlines.','🔷','https://gamma.app',true,false,4200),
 ('decktopus-ai','Decktopus AI','decktopus','research','AI presentation generator creating full decks from topic descriptions.','📊','https://decktopus.com',true,false,2400),
 ('prezi-ai','Prezi AI','prezi','research','AI-enhanced presentation tool with non-linear zoomable slides.','🔄','https://prezi.com',true,false,3800),
 ('pitch-ai','Pitch AI','pitch','research','AI collaborative presentation platform for startup decks and portfolios.','⚾','https://pitch.com',true,false,2900),

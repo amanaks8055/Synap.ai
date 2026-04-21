@@ -1,3 +1,12 @@
-$Headers = @{ 'apikey' = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA' }
-$Definition = (Invoke-RestMethod -Uri 'https://ssemwzmwhlcfmzmrweuw.supabase.co/rest/v1/' -Headers $Headers).definitions.ai_tools
+$envPath = Join-Path $PSScriptRoot '..\.env'
+Get-Content $envPath | ForEach-Object {
+	if ($_ -match '^\s*([^#][^=]*)=(.*)$') {
+		$name = $matches[1].Trim()
+		$value = $matches[2].Trim().Trim('"')
+		Set-Item -Path "Env:$name" -Value $value
+	}
+}
+
+$Headers = @{ 'apikey' = $env:SUPABASE_SERVICE_ROLE_KEY }
+$Definition = (Invoke-RestMethod -Uri "$($env:SUPABASE_URL)/rest/v1/" -Headers $Headers).definitions.ai_tools
 $Definition | ConvertTo-Json -Depth 5

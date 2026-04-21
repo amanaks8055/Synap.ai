@@ -1,699 +1,642 @@
 // lib/screens/voice_hub_screen.dart
 // ══════════════════════════════════════════════════════════════
-// SYNAP — Voice Hub Screen
-// Hindi + English + Hinglish voice support
-// speech_to_text package use kar raha hai
+// SYNAP — Premium Voice Assistant Screen
+// ChatGPT-inspired conversational layout with Glassmorphism
 // ══════════════════════════════════════════════════════════════
 
 import 'dart:async';
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/tracker/tracker_bloc.dart';
-import '../blocs/tracker/tracker_event.dart';
-import '../widgets/ai_loader.dart';
-import '../services/user_profile_service.dart';
-
-// New Imports
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/assistant_state.dart';
+import '../services/assistant_controller.dart';
 import '../models/voice_tool_model.dart';
-import '../services/voice_kb_service.dart';
-import 'voice_hub/widgets/mode_pill.dart';
+import 'voice_hub/widgets/tool_card.dart';
 import 'voice_hub/widgets/waveform_bars.dart';
 import 'voice_hub/widgets/thinking_dots.dart';
-import 'voice_hub/widgets/cursor_blink.dart';
-import 'voice_hub/widgets/tool_card.dart';
 
-// ══════════════════════════════════════════════════════════════
-// VOICE HUB SCREEN
-// ══════════════════════════════════════════════════════════════
-enum _VoiceState { idle, listening, thinking, done }
-
-class VoiceHubScreen extends StatefulWidget {
+class VoiceHubScreen extends ConsumerStatefulWidget {
   const VoiceHubScreen({super.key});
-  @override State<VoiceHubScreen> createState() => _VoiceHubScreenState();
+
+  @override
+  ConsumerState<VoiceHubScreen> createState() => _VoiceHubScreenState();
 }
 
-class _VoiceHubScreenState extends State<VoiceHubScreen>
-    with TickerProviderStateMixin {
-
-  // ── Speech ─────────────────────────────────────────────────
+class _VoiceHubScreenState extends ConsumerState<VoiceHubScreen> {
   final SpeechToText _speech = SpeechToText();
-  bool   _speechAvailable = false;
-  bool   _isListening      = false;
-  String _transcript       = '';
-  String _partialText      = '';
+  final ScrollController _scrollCtrl = ScrollController();
+  bool _speechAvailable = false;
+  String _partialText = "";
 
-  // ── State ──────────────────────────────────────────────────
-  _VoiceState _state = _VoiceState.idle;
-
-  String            _aiResponse = '';
-  List<VoiceToolModel>  _results    = [];
-  String            _mode       = 'search'; // search | track
-
-  // ── Animations ─────────────────────────────────────────────
-  late AnimationController _pulseCtrl;
-  late AnimationController _waveCtrl;
-  late AnimationController _resultCtrl;
-  late AnimationController _ringCtrl;
-
-  // ── Suggestion chips ───────────────────────────────────────
-  final _chips = [
-    'Free image banao',
-    'ChatGPT alternative',
-    'Code karne ke liye',
-    'Video editing free',
-    'Music banana free',
-    'Resume likhna hai',
-    'Presentation banana',
-    'Research karna hai',
+  final _suggestions = [
+    {'label': 'Who are you?', 'icon': Icons.info_outline},
+    {'label': 'Best free AI writing tool?', 'icon': Icons.edit_note_rounded},
+    {'label': 'Best video editor?', 'icon': Icons.movie_outlined},
+    {'label': 'Tell me a joke', 'icon': Icons.emoji_emotions_outlined},
+    {'label': 'Free music AI tool', 'icon': Icons.music_note_outlined},
+    {'label': 'Give me a pro tip', 'icon': Icons.lightbulb_outline},
   ];
 
   @override
   void initState() {
     super.initState();
-
-    _pulseCtrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1600),
-    )..repeat(reverse: true);
-
-    _waveCtrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 800),
-    );
-
-    _resultCtrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 500),
-    );
-
-    _ringCtrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1200),
-    );
-
     _initSpeech();
   }
 
   Future<void> _initSpeech() async {
-    _speechAvailable = await _speech.initialize(
-      onStatus: _onSpeechStatus,
-      onError:  (e) => _onSpeechError(e.errorMsg),
-    );
-    setState(() {});
+    try {
+      _speechAvailable = await _speech.initialize(
+        onError: (e) => debugPrint('[VoiceHub] Speech Init Error: $e'),
+      );
+    } catch (e) {
+      _speechAvailable = false;
+    }
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _pulseCtrl.dispose();
-    _waveCtrl.dispose();
-    _resultCtrl.dispose();
-    _ringCtrl.dispose();
+    ref.read(assistantProvider.notifier).stopSpeaking();
+    _scrollCtrl.dispose();
     _speech.stop();
     super.dispose();
   }
 
-  // ══════════════════════════════════════════════════════════
-  // SPEECH LOGIC
-  // ══════════════════════════════════════════════════════════
-  Future<void> _toggleMic() async {
-    if (_isListening) {
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    if (!mounted) return;
+    setState(() => _partialText = result.recognizedWords);
+    if (result.finalResult) {
+      ref.read(assistantProvider.notifier).processVoiceInput(result.recognizedWords);
+      if (!mounted) return;
+      setState(() => _partialText = "");
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.animateTo(
+          _scrollCtrl.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutQuart,
+        );
+      }
+    });
+  }
+
+  Future<void> _openTool(VoiceToolModel tool) async {
+    final raw = tool.url.trim();
+    if (raw.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No website available for this tool.')),
+      );
+      return;
+    }
+
+    final normalized = raw.startsWith('http://') || raw.startsWith('https://')
+        ? raw
+        : 'https://$raw';
+
+    final uri = Uri.tryParse(normalized);
+    if (uri == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid tool link.')),
+      );
+      return;
+    }
+
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open tool link.')),
+      );
+    }
+  }
+
+  Future<void> _startListening() async {
+    final state = ref.read(assistantProvider);
+    
+    if (state.micState == MicState.speaking) {
+      ref.read(assistantProvider.notifier).stopSpeaking();
+      return;
+    }
+
+    if (state.micState == MicState.listening) {
       await _speech.stop();
+      ref.read(assistantProvider.notifier).setMicState(MicState.idle);
       return;
     }
 
     if (!_speechAvailable) {
-      _showToast('Please grant Microphone permission in Settings');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Speech recognition not available')),
+      );
       return;
     }
 
     HapticFeedback.mediumImpact();
-    setState(() {
-      _state       = _VoiceState.listening;
-      _isListening = true;
-      _transcript  = '';
-      _partialText = '';
-      _results     = [];
-      _aiResponse  = '';
-    });
-
-    _ringCtrl.repeat();
-    _waveCtrl.repeat(reverse: true);
-
+    ref.read(assistantProvider.notifier).setMicState(MicState.listening);
+    
     await _speech.listen(
-      onResult:          _onResult,
-      listenFor:         const Duration(seconds: 10),
-      pauseFor:          const Duration(seconds: 2),
-      // English voice recognition
-      localeId:          'en_US',
-      onSoundLevelChange: (level) {
-        // Wave animation speed change based on sound level
-        if (mounted) setState(() {});
-      },
+      onResult: _onSpeechResult,
+      listenFor: const Duration(seconds: 20),
+      pauseFor: const Duration(seconds: 4),
+      localeId: 'en_US',
     );
   }
 
-  void _onResult(SpeechRecognitionResult result) {
-    setState(() {
-      _partialText = result.recognizedWords;
-      if (result.finalResult) {
-        _transcript  = result.recognizedWords;
-        _isListening = false;
-        _ringCtrl.stop();
-        _waveCtrl.stop();
-        if (_transcript.trim().isNotEmpty) {
-          _processQuery(_transcript);
-        } else {
-          _setState(_VoiceState.idle);
-        }
-      }
-    });
-  }
-
-  void _onSpeechStatus(String status) {
-    if (status == 'done' || status == 'notListening') {
-      if (_isListening && _partialText.isNotEmpty) {
-        _transcript  = _partialText;
-        _isListening = false;
-        _ringCtrl.stop();
-        _waveCtrl.stop();
-        _processQuery(_transcript);
-      } else if (_isListening) {
-        setState(() {
-          _isListening = false;
-          _state = _VoiceState.idle;
-        });
-        _ringCtrl.stop();
-        _waveCtrl.stop();
-      }
-    }
-  }
-
-  void _onSpeechError(String error) {
-    setState(() {
-      _isListening = false;
-      _state = _VoiceState.idle;
-    });
-    _ringCtrl.stop();
-    _waveCtrl.stop();
-    if (error != 'error_speech_timeout') {
-      _showToast('Try again — $error');
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // PROCESS QUERY
-  // ══════════════════════════════════════════════════════════
-  void _processQuery(String text) async {
-    if (text.trim().isEmpty) return;
-
-    _setState(_VoiceState.thinking);
-    HapticFeedback.lightImpact();
-
-    // Simulate AI thinking delay (300ms feels natural)
-    await Future.delayed(const Duration(milliseconds: 350));
-
-    if (_mode == 'track') {
-      _handleTrackCommand(text);
-    } else {
-      _handleSearch(text);
-    }
-  }
-
-  void _handleSearch(String text) {
-    final response = VoiceKBService.getResponse(text);
-    final tools    = VoiceKBService.getTools(text);
-
-    setState(() {
-      _aiResponse = response;
-      _results    = tools;
-      _state      = _VoiceState.done;
-    });
-
-    UserProfileService.incrementToolsUsed();
-
-    _resultCtrl.forward(from: 0);
-    HapticFeedback.lightImpact();
-  }
-
-  void _handleTrackCommand(String text) {
-    final cmd = VoiceKBService.parseTrackCommand(text);
-
-    if (cmd == null) {
-      setState(() {
-        _aiResponse = 'Konsa tool track karna hai? Jaise: "ChatGPT ke 5 messages use kiye"';
-        _results    = [];
-        _state      = _VoiceState.done;
-      });
-      return;
-    }
-
-    final toolId = cmd['toolId'] as String;
-    final count  = cmd['count']  as int;
-    final isReset = cmd['isReset'] as bool;
-
-    if (isReset) {
-      context.read<TrackerBloc>().add(TrackerManualReset(toolId));
-      setState(() {
-        _aiResponse = '✅ $toolId reset ho gaya!';
-        _results    = [];
-        _state      = _VoiceState.done;
-      });
-    } else {
-      context.read<TrackerBloc>().add(
-        TrackerUsageLogged(toolId, count: count));
-      setState(() {
-        _aiResponse = '📊 $count ${_unitFor(toolId)} logged for ${_nameFor(toolId)}';
-        _results    = [];
-        _state      = _VoiceState.done;
-      });
-    }
-    _resultCtrl.forward(from: 0);
-    HapticFeedback.lightImpact();
-  }
-
-  // ── Try chip ─────────────────────────────────────────────
-  void _tryChip(String text) {
-    setState(() {
-      _transcript  = text;
-      _partialText = text;
-    });
-    _processQuery(text);
-  }
-
-  void _setState(_VoiceState s) {
-    setState(() => _state = s);
-  }
-
-  // ── Helpers ──────────────────────────────────────────────
-  String _unitFor(String toolId) {
-    switch (toolId) {
-      case 'midjourney': return 'images';
-      case 'suno':       return 'credits';
-      default:           return 'messages';
-    }
-  }
-
-  String _nameFor(String toolId) {
-    final map = {
-      'chatgpt_gpt4o': 'ChatGPT',
-      'claude':        'Claude',
-      'gemini':        'Gemini',
-      'perplexity':    'Perplexity',
-      'suno':          'Suno',
-      'midjourney':    'Midjourney',
-      'cursor':        'Cursor',
-    };
-    return map[toolId] ?? toolId;
-  }
-
-  void _showToast(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg,
-        style: const TextStyle(fontFamily: 'DM Sans')),
-      backgroundColor: const Color(0xFF0C1019),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12)),
-      duration: const Duration(seconds: 2),
-    ));
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // BUILD
-  // ══════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF05080F),
-      body: SafeArea(
-        child: Column(children: [
-          _buildTopBar(),
-          Expanded(child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 30),
-            child: Column(children: [
-              _buildModePills(),
-              _buildMicStage(),
-              _buildStatusLabel(),
-              _buildTranscriptArea(),
-              if (_state == _VoiceState.done) _buildResults(),
-              if (_state == _VoiceState.idle ||
-                  _state == _VoiceState.done)
-                _buildChips(),
-            ]),
-          )),
-        ]),
+    final state = ref.watch(assistantProvider);
+
+    return WillPopScope(
+      onWillPop: () async {
+        ref.read(assistantProvider.notifier).stopSpeaking();
+        await _speech.stop();
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF020305),
+        extendBodyBehindAppBar: true,
+        appBar: _buildAppBar(state),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.topRight,
+              radius: 1.5,
+              colors: [
+                Color(0xFF0F172A),
+                Color(0xFF020305),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                _buildModeSection(state.mode),
+                const SizedBox(height: 10),
+                
+                Expanded(
+                  child: state.messages.isEmpty 
+                    ? _buildEmptyState() 
+                    : _buildChatList(state),
+                ),
+
+                _buildBottomSection(state),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  // ── TOP BAR ──────────────────────────────────────────────
-  Widget _buildTopBar() => Padding(
-    padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-    child: Row(children: [
-      IconButton(
-        icon: const Icon(Icons.arrow_back_ios,
-          color: Color(0xFF3A4A60), size: 18),
-        onPressed: () => Navigator.pop(context),
+  PreferredSizeWidget _buildAppBar(AssistantState state) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 28),
+        onPressed: () async {
+          ref.read(assistantProvider.notifier).stopSpeaking();
+          await _speech.stop();
+          if (mounted) Navigator.pop(context);
+        },
       ),
-      // Synap logo inline SVG feel — just text logo
-      const Text('Voice Hub',
-        style: TextStyle(fontFamily: 'Syne', fontSize: 18,
-          fontWeight: FontWeight.w800, color: Colors.white,
-          letterSpacing: -0.5)),
-      const Spacer(),
-      // Language indicator
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      centerTitle: true,
+      title: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFF00C8E8).withOpacity(0.08),
-          border: Border.all(
-            color: const Color(0xFF00C8E8).withOpacity(0.2)),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
         ),
-        child: const Text('ENGLISH',
-          style: TextStyle(fontFamily: 'DM Sans', fontSize: 10,
-            color: Color(0xFF00C8E8), fontWeight: FontWeight.w600,
-            letterSpacing: 0.5)),
-      ),
-    ]),
-  );
-
-  // ── MODE PILLS ───────────────────────────────────────────
-  Widget _buildModePills() => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-    child: Row(children: [
-      ModePill(
-        icon: '🔍', label: 'Find Tool',
-        active: _mode == 'search',
-        onTap: () => setState(() {
-          _mode = 'search';
-          _results = []; _aiResponse = '';
-          _state = _VoiceState.idle;
-        }),
-      ),
-      const SizedBox(width: 10),
-      ModePill(
-        icon: '📊', label: 'Log Usage',
-        active: _mode == 'track',
-        onTap: () => setState(() {
-          _mode = 'track';
-          _results = []; _aiResponse = '';
-          _state = _VoiceState.idle;
-        }),
-      ),
-    ]),
-  );
-
-  // ── MIC STAGE ────────────────────────────────────────────
-  Widget _buildMicStage() => SizedBox(
-    height: 260,
-    child: Stack(alignment: Alignment.center, children: [
-      // Animated rings
-      AnimatedBuilder(
-        animation: _ringCtrl,
-        builder: (_, __) => Stack(
-          alignment: Alignment.center,
-          children: [1.0, 1.4, 1.8, 2.2].asMap().entries.map((e) {
-            final delay  = e.key * 0.25;
-            final t      = (_ringCtrl.value - delay).clamp(0.0, 1.0);
-            final scale  = _isListening ? 1.0 + t * 0.5 : 1.0;
-            final opacity = _isListening
-                ? (1 - t) * (e.key == 0 ? 0.5 : e.key == 1 ? 0.3 : e.key == 2 ? 0.15 : 0.07)
-                : 0.06 - e.key * 0.01;
-            return Transform.scale(
-              scale: scale,
-              child: Container(
-                width: 96.0 + e.key * 30,
-                height: 96.0 + e.key * 30,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF00C8E8)
-                        .withOpacity(opacity.clamp(0, 1)),
-                    width: 1,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-
-      // Main mic button
-      GestureDetector(
-        onTap: _toggleMic,
-        child: AnimatedBuilder(
-          animation: _pulseCtrl,
-          builder: (_, __) {
-            final isActive = _isListening ||
-                _state == _VoiceState.thinking;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutBack,
-              width: isActive ? 90 : 80,
-              height: isActive ? 90 : 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isActive
-                    ? const Color(0xFF00C8E8)
-                    : const Color(0xFF0C1019),
-                border: Border.all(
-                  color: isActive
-                      ? const Color(0xFF00C8E8)
-                      : const Color(0xFF00C8E8).withOpacity(
-                          0.25 + 0.15 * _pulseCtrl.value),
-                  width: 1.5,
-                ),
-                boxShadow: [BoxShadow(
-                  color: const Color(0xFF00C8E8).withOpacity(
-                    isActive
-                        ? 0.3 + 0.15 * _pulseCtrl.value
-                        : 0.08 + 0.06 * _pulseCtrl.value),
-                  blurRadius: isActive ? 30 : 20,
-                  spreadRadius: isActive ? 4 : 0,
-                )],
-              ),
-              child: SynapAiLoader(
-                size: isActive ? 90 : 80,
-                text: _state == _VoiceState.thinking ? 'Thinking' : (_isListening ? 'Listening' : 'Talk'),
-                animate: isActive,
-              ),
-            );
-          },
-        ),
-      ),
-
-      // Waveform bars (visible when listening)
-      if (_isListening)
-        Positioned(
-          bottom: 20,
-          child: AnimatedBuilder(
-            animation: _waveCtrl,
-            builder: (_, __) => WaveformBars(value: _waveCtrl.value),
-          ),
-        ),
-    ]),
-  );
-
-  // ── STATUS LABEL ─────────────────────────────────────────
-  Widget _buildStatusLabel() {
-    String text = '';
-    Color color = Colors.transparent;
-    switch (_state) {
-      case _VoiceState.idle:
-        text  = _speechAvailable
-            ? 'Tap Mic — Speak in English'
-            : 'Microphone permission required';
-        color = const Color(0xFF3A4A60);
-        break;
-      case _VoiceState.listening:
-        text  = 'Listening...';
-        color = const Color(0xFF00C8E8);
-        break;
-      case _VoiceState.thinking:
-        text  = 'Thinking...';
-        color = const Color(0xFFF5A623);
-        break;
-      case _VoiceState.done:
-        text  = 'Here is your answer 👇';
-        color = const Color(0xFF00D68F);
-        break;
-    }
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
-      child: Padding(
-        key: ValueKey(text),
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (_state != _VoiceState.idle)
-              Container(
-                width: 7, height: 7,
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: color,
-                  boxShadow: [BoxShadow(
-                    color: color.withOpacity(0.5), blurRadius: 6)],
-                ),
+            _buildStatusDot(state.micState),
+            const SizedBox(width: 10),
+            const Text(
+              'Synap Intelligence',
+              style: TextStyle(
+                fontFamily: 'Syne',
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                fontSize: 14,
+                letterSpacing: 0.5,
               ),
-            Text(text, style: TextStyle(fontFamily: 'DM Sans',
-              fontSize: 13, color: color, fontWeight: FontWeight.w500)),
+            ),
           ],
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh_rounded, color: Colors.white30, size: 22),
+          onPressed: () => ref.read(assistantProvider.notifier).clearChat(),
+        ).animate().scale(delay: 500.ms),
+        const SizedBox(width: 8),
+      ],
     );
   }
 
-  // ── TRANSCRIPT AREA ───────────────────────────────────────
-  Widget _buildTranscriptArea() {
-    final display = _partialText.isNotEmpty
-        ? _partialText : _transcript;
+  Widget _buildStatusDot(MicState mic) {
+    Color color;
+    switch (mic) {
+      case MicState.idle: color = Colors.greenAccent; break;
+      case MicState.listening: color = Colors.blueAccent; break;
+      case MicState.processing: color = Colors.amberAccent; break;
+      case MicState.speaking: color = Colors.purpleAccent; break;
+    }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.fromLTRB(20, 6, 20, 0),
-      padding: const EdgeInsets.all(14),
-      constraints: const BoxConstraints(minHeight: 52),
+    return Container(
+      width: 6,
+      height: 6,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: const Color(0xFF090D16),
-        border: Border.all(
-          color: _isListening
-              ? const Color(0xFF00C8E8).withOpacity(0.3)
-              : const Color(0xFF131B27)),
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(color: color.withOpacity(0.6), blurRadius: 6, spreadRadius: 1),
+        ],
       ),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start,
+    ).animate(onPlay: (c) => c.repeat())
+     .shimmer(duration: 1.5.seconds, color: Colors.white54);
+  }
+
+  Widget _buildModeSection(String currentMode) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('"', style: TextStyle(fontFamily: 'Syne',
-            fontSize: 28, height: 0.8,
-            color: const Color(0xFF131B27))),
-          const SizedBox(width: 4),
-          Expanded(child: display.isEmpty
-              ? Text(
-                  _mode == 'track'
-                      ? 'E.g. "ChatGPT ke 10 messages use kiye"'
-                      : 'E.g. "Free mein video edit karna hai"',
-                  style: const TextStyle(fontFamily: 'DM Sans',
-                    fontSize: 13, color: Color(0xFF2E3E54)),
-                )
-              : Text(display,
-                  style: const TextStyle(fontFamily: 'DM Sans',
-                    fontSize: 14, color: Colors.white, height: 1.5)),
+          _ModePill(
+            label: 'Search AI Tools',
+            mode: 'chat',
+            currentMode: currentMode,
+            icon: Icons.search_rounded,
+            onTap: () => ref.read(assistantProvider.notifier).setMode('chat'),
           ),
-          if (_isListening)
-            const CursorBlink(),
+          const SizedBox(width: 12),
+          _ModePill(
+            label: 'Log AI Usage',
+            mode: 'track',
+            currentMode: currentMode,
+            icon: Icons.analytics_outlined,
+            onTap: () => ref.read(assistantProvider.notifier).setMode('track'),
+          ),
         ],
       ),
     );
   }
 
-  // ── AI RESULTS ───────────────────────────────────────────
-  Widget _buildResults() => AnimatedBuilder(
-    animation: _resultCtrl,
-    builder: (_, __) {
-      final v = Curves.easeOutCubic.transform(_resultCtrl.value);
-      return Opacity(
-        opacity: v,
-        child: Transform.translate(
-          offset: Offset(0, 16 * (1 - v)),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Synap AI label
-                Row(children: [
-                  Container(
-                    width: 22, height: 22,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(7),
-                      color: const Color(0xFF090D16),
-                      border: Border.all(
-                        color: const Color(0xFF00C8E8).withOpacity(0.3)),
-                    ),
-                    child: const Center(
-                      child: Text('S', style: TextStyle(
-                        fontFamily: 'Syne', fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF00C8E8)))),
-                  ),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.03),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
+            ),
+            child: const Icon(Icons.auto_awesome, color: Colors.white24, size: 48),
+          ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
+          const SizedBox(height: 24),
+          const Text(
+            "How can I help you, Master?",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Syne',
+              fontWeight: FontWeight.w700,
+            ),
+          ).animate().fadeIn(delay: 200.ms).moveY(begin: 10, end: 0),
+          const SizedBox(height: 8),
+          const Text(
+            "Ask me anything about free AI tools.",
+            style: TextStyle(color: Colors.white38, fontSize: 14),
+          ).animate().fadeIn(delay: 400.ms),
+          const SizedBox(height: 48),
+          _buildSuggestionGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionGrid() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        alignment: WrapAlignment.center,
+        children: _suggestions.map((s) {
+          return GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              ref.read(assistantProvider.notifier).processVoiceInput(s['label'] as String);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.06)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(s['icon'] as IconData, color: Colors.white38, size: 16),
                   const SizedBox(width: 8),
-                  const Text('Synap AI',
-                    style: TextStyle(fontFamily: 'DM Sans',
-                      fontSize: 11, fontWeight: FontWeight.w600,
-                      color: Color(0xFF00C8E8),
-                      letterSpacing: 0.5)),
-                ]),
-                const SizedBox(height: 10),
-
-                // Response text
-                Text(_aiResponse,
-                  style: const TextStyle(fontFamily: 'DM Sans',
-                    fontSize: 14, color: Colors.white, height: 1.6)),
-
-                if (_results.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  ..._results.asMap().entries.map((e) =>
-                    TweenAnimationBuilder<double>(
-                      duration: Duration(
-                        milliseconds: 300 + e.key * 80),
-                      tween: Tween(begin: 0, end: 1),
-                      curve: Curves.easeOutCubic,
-                      builder: (_, v, child) => Transform.translate(
-                        offset: Offset(0, 14 * (1 - v)),
-                        child: Opacity(
-                          opacity: v.clamp(0, 1), child: child),
-                      ),
-                      child: ToolResultCard(tool: e.value),
-                    ),
+                  Text(
+                    s['label'] as String,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-
-  // ── SUGGESTION CHIPS ─────────────────────────────────────
-  Widget _buildChips() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-        child: Text('Try karo',
-          style: TextStyle(fontFamily: 'DM Sans', fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.25),
-            letterSpacing: 0.8)),
-      ),
-      SizedBox(
-        height: 36,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: _chips.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (_, i) => GestureDetector(
-            onTap: () => _tryChip(_chips[i]),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: const Color(0xFF090D16),
-                border: Border.all(color: const Color(0xFF131B27)),
               ),
-              child: Text(_chips[i], style: const TextStyle(
-                fontFamily: 'DM Sans', fontSize: 12,
-                color: Color(0xFF7A8FA8), fontWeight: FontWeight.w500)),
             ),
+          );
+        }).toList().animate(interval: 50.ms).fadeIn().scale(begin: const Offset(0.9, 0.9)),
+      ),
+    );
+  }
+
+  Widget _buildChatList(AssistantState state) {
+    return ListView.builder(
+      controller: _scrollCtrl,
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 80), // More bottom padding for mic button
+      itemCount: state.messages.length + (state.micState == MicState.processing ? 1 : 0),
+      itemBuilder: (ctx, i) {
+        if (i == state.messages.length) {
+          return _buildThinkingBubble();
+        }
+
+        final m = state.messages[i];
+        bool isUser = m.sender == Sender.user;
+        
+        return Column(
+          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildMessageBubble(m, isUser),
+            if (m.tools.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 220, // Increased height for better card visibility
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: m.tools.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 4), // Small offset
+                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  itemBuilder: (_, ti) => ToolResultCard(
+                    tool: m.tools[ti],
+                    onOpen: () => _openTool(m.tools[ti]),
+                  ),
+                ),
+              ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, curve: Curves.easeOutCubic),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildThinkingBubble() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B).withOpacity(0.3),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const ThinkingDots(),
+      ),
+    ).animate().fade().scale(begin: const Offset(0.95, 0.95));
+  }
+
+  Widget _buildMessageBubble(ChatMessage m, bool isUser) {
+    return Container(
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: isUser 
+          ? const Color(0xFF2563EB).withOpacity(0.15) 
+          : const Color(0xFF1E293B).withOpacity(0.5),
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(24),
+          topRight: const Radius.circular(24),
+          bottomLeft: Radius.circular(isUser ? 24 : 6),
+          bottomRight: Radius.circular(isUser ? 6 : 24),
+        ),
+        border: Border.all(
+          color: isUser 
+            ? const Color(0xFF3B82F6).withOpacity(0.4) 
+            : Colors.white.withOpacity(0.1),
+        ),
+        boxShadow: [
+          if (isUser) 
+            BoxShadow(
+              color: const Color(0xFF2563EB).withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Text(
+        m.text,
+        style: TextStyle(
+          color: isUser ? Colors.white : Colors.white.withOpacity(0.9),
+          fontSize: 15,
+          height: 1.5,
+          letterSpacing: 0.2,
+          fontWeight: isUser ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+    ).animate().fade(duration: 300.ms).slideY(begin: 0.05, end: 0);
+  }
+
+  Widget _buildBottomSection(AssistantState state) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            const Color(0xFF020305).withOpacity(0.95),
+            const Color(0xFF020305),
+          ],
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(context).padding.bottom + 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Speech Visualization / Waveform
+          if (state.micState == MicState.speaking)
+             const Padding(
+               padding: EdgeInsets.only(bottom: 20),
+               child: WaveformBars(),
+             ),
+
+          // User Transcript (Partial)
+          if (state.micState == MicState.listening && _partialText.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Text(
+                _partialText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+            ).animate().fade(),
+
+          // Main Mic Toggle
+          _buildMicButton(state.micState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMicButton(MicState mic) {
+    bool isListening = mic == MicState.listening;
+    bool isSpeaking = mic == MicState.speaking;
+
+    return GestureDetector(
+      onTap: _startListening,
+      child: Container(
+        width: 84,
+        height: 84,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withOpacity(0.03),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Center(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Ring animations when listening
+              if (isListening)
+                ...List.generate(2, (i) => 
+                  Container(
+                    width: 70, height: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                    ),
+                  ).animate(onPlay: (c) => c.repeat())
+                   .scale(begin: const Offset(1, 1), end: const Offset(1.8, 1.8), duration: 1200.ms, delay: (i*600).ms)
+                   .fadeOut()
+                ),
+
+              // Core Button
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: isListening 
+                      ? [const Color(0xFF3B82F6), const Color(0xFF2563EB)]
+                      : isSpeaking
+                        ? [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)]
+                        : [const Color(0xFF1E293B), const Color(0xFF0F172A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    if (isListening) 
+                      BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 20, spreadRadius: 2),
+                    if (isSpeaking)
+                      BoxShadow(color: Colors.purpleAccent.withOpacity(0.3), blurRadius: 20, spreadRadius: 2),
+                  ],
+                ),
+                child: Icon(
+                  isListening ? Icons.stop_rounded : (isSpeaking ? Icons.volume_up_rounded : Icons.mic_none_rounded),
+                  color: isListening || isSpeaking ? Colors.white : Colors.white54,
+                  size: 32,
+                ),
+              ),
+            ],
           ),
         ),
       ),
-    ],
-  );
+    );
+  }
+}
+
+class _ModePill extends StatelessWidget {
+  final String label;
+  final String mode;
+  final String currentMode;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _ModePill({
+    required this.label,
+    required this.mode,
+    required this.currentMode,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    bool active = mode == currentMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: active ? Colors.blueAccent.withOpacity(0.1) : Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: active ? Colors.blueAccent.withOpacity(0.3) : Colors.white.withOpacity(0.05),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon, 
+              size: 16, 
+              color: active ? Colors.blueAccent : Colors.white38
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? Colors.white : Colors.white38,
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

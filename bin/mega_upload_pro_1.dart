@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -68,7 +69,7 @@ void main() async {
     t('kavout-ai','Kavout','finance','AI-powered investment platform with quantitative stock ratings.','https://kavout.com',false,false,4200, freeTier:'Demo available', price:0, tips:'Kai score for stock prediction | Used by hedge funds | Data-driven insights'),
     t('aladdin-blackrock','Aladdin (BlackRock)','finance','The world\'s most powerful risk management and investment system.','https://blackrock.com/aladdin',false,true,9200, freeTier:'Institutional only', price:0, tips:'Manages \$20 trillion+ in assets | AI-powered risk scoring | Industry standard'),
     t('quantconnect-ai','QuantConnect','finance','Cloud-based algorithmic trading platform with AI backtesting.','https://quantconnect.com',true,true,8400, freeTier:'Free for individuals (limited)', price:20, priceTier:'Researcher monthly', tips:'Code in Python/C# | Access to massive datasets | Direct broker integration'),
-    t('numerai-ai','Numerai','finance','The hardest data science tournament in the world for stock market AI.','https://numer.ai',true,true,15000, freeTier:'Completely free to compete', price:0, tips:'Encrypted data | Crowd-sourced hedge fund | Win crypto (NMR) rewards'),
+    t('alpaca-ai-trading','Alpaca','finance','API-first trading platform using AI-ready market infrastructure for algorithmic investing.','https://alpaca.markets',true,true,15000, freeTier:'Free paper trading and market data', price:0, tips:'Great for quant developers | Clean trading APIs | Strong algo-trading ecosystem'),
 
     // ━━━ HR & TALENT (Enterprise) ━━━
     t('eightfold-ai','Eightfold','hr','AI platform for talent intelligence and skill-based hiring.','https://eightfold.ai',false,true,5200, freeTier:'Demo available', price:0, tips:'Identify skill gaps | Bias-free hiring | Internal mobility focus'),

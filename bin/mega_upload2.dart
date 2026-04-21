@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,14 +33,14 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
     // ━━━ 3D DESIGN & CREATIVE ━━━
     t('spline','Spline','design','Collaborative 3D design tool for the web with real-time editing.','https://spline.design',true,true,5400, freeTier:'Free basic features', price:9, priceTier:'Personal: unlimited files, more features', tips:'Export to web or React | Real-time collaboration | Easy to learn for 2D designers'),
-    t('luma-ai','Luma AI','design','Fast and easy 3D capture from photos using NeRF and Gaussian Splatting.','https://lumalabs.ai',true,true,6200, freeTier:'Free high-res captures via app', price:0, tips:'Great for product 3D captures | High fidelity NeRFs | Instant export to GLTF'),
+    t('runway-ai','Runway','design','AI-powered creative suite for video, image, and motion generation workflows.','https://runwayml.com',true,true,6200, freeTier:'Free starter credits available', price:15, priceTier:'Standard monthly', tips:'Great for creators and teams | Strong AI video tooling | Reliable brand and assets'),
     t('kuma-ai','Kuma','design','AI character creation and 3D design for games and animation.','https://kuma.ai',true,false,1800, freeTier:'Free beta access', price:0, tips:'Fastest 3D character generator | Good for game assets | Export to Unity/Unreal'),
     t('meshy-ai','Meshy','design','AI toolbox for 3D content creation converting text and images to 3D.','https://meshy.ai',true,false,2400, freeTier:'10 free generations per month', price:16, priceTier:'Pro: 150 high-quality 3D models', tips:'Best for text-to-3D | Good PBR maps | Export to OBJ/GLTF'),
     t('tripo-ai','Tripo AI','design','High-quality AI 3D modeling from text and images in seconds.','https://tripoai.com',true,false,2200, freeTier:'10 free credits per day', price:15, priceTier:'Standard: 300 credits per month', tips:'Fast generation | Good topography | Essential for rapid 3D prototyping'),
@@ -74,7 +75,7 @@ void main() async {
     t('counselyze','Counselyze','legal','AI tool for lawyers simplifying document review and research.','https://counselyze.com',true,false,1400, freeTier:'Free basic plan', price:49, priceTier:'Pro: unlimited reviews', tips:'Simplify complex legal jargon | Fast file analysis | Privacy-first approach'),
     t('luminance-ai','Luminance','legal','AI for the legal processing of mergers, acquisitions, and due diligence.','https://luminance.com',false,false,2200, freeTier:'Institutional demo', price:0, tips:'World-leading legal AI | Automated due diligence | Used by the Big Four'),
     t('lawgeex','LawGeex','legal','Automated contract review and approval using AI for enterprises.','https://lawgeex.com',false,false,1800, freeTier:'No free tier', price:0, tips:'Legal policy enforcement | 24/7 contract review | Consistent compliance'),
-    t('legaleze','Legaleze','legal','AI automating legal research and drafting for paralegals.','https://legaleze.io',true,false,1200, freeTier:'Free basic access', price:20, priceTier:'Pro: unlimited drafting', tips:'Draft with AI templates | Research case law fast | Simplified workflow'),
+    t('casetext-ai','Casetext CoCounsel','legal','AI legal research and drafting assistant built for law firm workflows.','https://casetext.com/cocounsel',false,true,1200, freeTier:'Trial available for firms', price:0, tips:'Fast legal research and drafting | Strong case-law grounding | Trusted by legal teams'),
     t('lexis-plus-ai','Lexis+ AI','legal','Generative AI for legal research and drafting by LexisNexis.','https://lexisnexis.com',false,true,3600, freeTier:'Subscriber access only', price:0, tips:'Authoritative legal content | Hallucination-free research | Draft with AI'),
 
     // ━━━ E-COMMERCE AI ━━━

@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,14 +33,14 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
     // ━━━ AI FOR MUSIC PRODUCTION v2 ━━━
     t('izotope-ai-pro','iZotope (Ozone)','audio','The industry standard for AI-powered mastering and mixing tools.','https://izotope.com',true,true,120000, freeTier:'Free basic plugins available', price:20, priceTier:'Subscription monthly', tips:'AI-powered "Master Assistant" | Best for professional sound | Trusted by top artists'),
-    t('landr-ai-pro','LANDR','audio','The world\'s #1 AI mastering service with additional distribution and labs.','https://landr.com',true,true,180000, freeTier:'Free basic account and samples', price:12, priceTier:'Studio monthly annual', tips:'Master your tracks in seconds with AI | Includes distribution to Spotify | reliable'),
+    t('bandlab-mastering-ai','BandLab Mastering','audio','Online AI mastering suite for creators with distribution and collaboration tools.','https://bandlab.com',true,true,180000, freeTier:'Free basic mastering and publishing', price:0, tips:'Beginner-friendly mastering | Strong creator ecosystem | Reliable web and mobile workflow'),
     t('splice-ai-pro','Splice','audio','Leading cloud-based sample library with AI-powered "Co-Stack" and search.','https://splice.com',true,true,250000, freeTier:'Free basic account to browse', price:10, priceTier:'Creator monthly', tips:'AI-powered "Bridge" for your DAW | Millions of royalty-free samples | Industry standard'),
     t('native-instruments-ai','Native Instruments','audio','Leading music technology company using AI for high-end virtual instruments.','https://native-instruments.com',true,true,150000, freeTier:'免费 basic software bundle', price:0, tips:'Industry standard for VSTs | AI-powered "Kontakt" engine | Professional grade'),
     t('waves-ai-pro','Waves Audio','audio','Leading provider of high-end audio plugins with AI-powered mixing.','https://waves.com',true,false,84000, freeTier:'Free demo for all plugins', price:15, priceTier:'Essential monthly subscription', tips:'Industry standard for studios | AI-powered "Clarity Vx" | Used on 100k+ hits'),

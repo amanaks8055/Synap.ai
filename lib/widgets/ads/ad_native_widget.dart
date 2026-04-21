@@ -26,6 +26,7 @@ class AdNativeWidget extends StatefulWidget {
 class _AdNativeWidgetState extends State<AdNativeWidget> {
   NativeAd? _nativeAd;
   bool _adLoaded = false;
+  bool _adFailed = false;
 
   @override
   void initState() {
@@ -58,9 +59,10 @@ class _AdNativeWidgetState extends State<AdNativeWidget> {
           if (mounted) setState(() => _adLoaded = true);
         },
         onAdFailedToLoad: (ad, err) {
-          debugPrint('🔴 Native inline failed: ${err.message}');
+
           ad.dispose();
           _nativeAd = null;
+          if (mounted) setState(() => _adFailed = true);
         },
       ),
     )..load();
@@ -77,6 +79,9 @@ class _AdNativeWidgetState extends State<AdNativeWidget> {
     if (kIsWeb || widget.isProUser || !AdConfig.showAdsForFree) {
       return const SizedBox.shrink();
     }
+
+    // Ad failed → hide completely
+    if (_adFailed) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

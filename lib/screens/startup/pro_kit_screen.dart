@@ -1,10 +1,13 @@
 import 'dart:ui';
-import 'package:flutter/material.dart' hide ImageFilter;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/moving_border_button.dart';
+import '../../blocs/premium/premium_bloc.dart';
+import '../../blocs/premium/premium_plans.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // SYNAP — PREMIUM STARTUP MASTERMIND (V9 - ACTIONABLE)
@@ -20,25 +23,12 @@ class ProKitScreen extends StatefulWidget {
 
 class _ProKitScreenState extends State<ProKitScreen> with TickerProviderStateMixin {
   late AnimationController _pulseCtrl;
-  bool _isUnlocked = false;
 
   @override
   void initState() {
     super.initState();
     _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
-    _checkOwnerAccess();
-    Future.delayed(const Duration(seconds: 1), _checkOwnerAccess);
-  }
-
-  void _checkOwnerAccess() {
-    if (!mounted) return;
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-      final email = user?.email?.toLowerCase();
-      if (email == 'amanaks8055@gmail.com' || (email?.contains('amanaks') ?? false)) {
-        if (!_isUnlocked) setState(() => _isUnlocked = true);
-      }
-    } catch (_) {}
+    context.read<PremiumBloc>().add(PremiumInitialized());
   }
 
   @override
@@ -49,7 +39,8 @@ class _ProKitScreenState extends State<ProKitScreen> with TickerProviderStateMix
 
   void _showPaymentModal() {
     HapticFeedback.heavyImpact();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Initializing Secure Payment for Mastermind Bundle...')));
+    // Trigger the standard Premium purchase flow (Professional tier)
+    context.read<PremiumBloc>().add(PremiumPurchaseStarted(SynapPlans.pro6Month));
   }
 
   @override
@@ -69,7 +60,7 @@ class _ProKitScreenState extends State<ProKitScreen> with TickerProviderStateMix
                   elevation: 0,
                   leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20), onPressed: () => Navigator.pop(context)),
                   flexibleSpace: FlexibleSpaceBar(
-                    background: _UnifiedMastermindHeader(isUnlocked: _isUnlocked),
+                    background: const _UnifiedMastermindHeader(),
                   ),
                 ),
                 SliverPersistentHeader(
@@ -93,15 +84,20 @@ class _ProKitScreenState extends State<ProKitScreen> with TickerProviderStateMix
                 color: const Color(0xFF030712),
                 child: TabBarView(
                   children: [
-                    _FounderPackTab(isUnlocked: _isUnlocked, onPay: _showPaymentModal),
-                    _EarningLabTab(isUnlocked: _isUnlocked, onPay: _showPaymentModal),
+                    _FounderPackTab(onPay: _showPaymentModal),
+                    _EarningLabTab(onPay: _showPaymentModal),
                   ],
                 ),
               ),
             ),
-            if (!_isUnlocked) Align(
-              alignment: Alignment.bottomCenter,
-              child: _FloatingPayButton(onTap: _showPaymentModal),
+            BlocBuilder<PremiumBloc, PremiumState>(
+              builder: (context, state) {
+                if (state.isPremium) return const SizedBox.shrink();
+                return Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _FloatingPayButton(onTap: _showPaymentModal),
+                );
+              },
             ),
           ],
         ),
@@ -126,8 +122,8 @@ class _StaggeredEntry extends StatelessWidget {
 // ── TAB 1: FOUNDER PACK ──────────────────────────────────────────
 
 class _FounderPackTab extends StatelessWidget {
-  final bool isUnlocked; final VoidCallback onPay;
-  const _FounderPackTab({required this.isUnlocked, required this.onPay});
+  final VoidCallback onPay;
+  const _FounderPackTab({required this.onPay});
 
   void _showDetail(BuildContext context, String title, String detail) {
     showModalBottomSheet(
@@ -152,65 +148,93 @@ class _FounderPackTab extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(20),
-    children: [
-      if (!isUnlocked) _StaggeredEntry(index: 0, child: _LockBanner(onTap: onPay)),
-      const SizedBox(height: 20),
-      const _StaggeredEntry(index: 1, child: _SectionHeader(title: 'Earn ₹1L in 48 Hours', sub: 'Click any step to reveal secret execution details')),
-      const SizedBox(height: 16),
-      _StaggeredEntry(index: 2, child: _ChallengeRoadmap(
-        isLocked: !isUnlocked,
-        onStepTap: (title, detail) => _showDetail(context, title, detail),
-      )),
-      const SizedBox(height: 32),
-      const _StaggeredEntry(index: 3, child: _SectionHeader(title: '💰 Zero to ₹1L Models', sub: 'High-income India focused models')),
-      const SizedBox(height: 16),
-      _StaggeredEntry(index: 4, child: _BluePrintCard(
-        title: 'Local Business Automation',
-        desc: 'Setup WhatsApp Chatbots for local shops. Charge ₹15k setup + ₹2k/mo AMC.',
-        icon: '🏪',
-        isLocked: !isUnlocked,
-        onTap: () => _showDetail(context, '🏪 Local Automation Strategy', 'Step 1: Scrape Google Maps for local businesses (Gyms, Salons) with low reviews.\nStep 2: Message them: "I saw you are missing 24/7 booking support. Can I set up an AI bot for you for free for 3 days?"\nStep 3: Use Synap\'s AI bot template to deploy in 10 mins.\nStep 4: Close for ₹15,000 once they see the leads flowing.'),
-      )),
-      _StaggeredEntry(index: 5, child: _BluePrintCard(
-        title: 'Freelance AI Clones',
-        desc: 'Use Fish.audio for voice clones & DreamForge for 3D assets. High ticket orders.',
-        icon: '💎',
-        isLocked: !isUnlocked,
-        onTap: () => _showDetail(context, '💎 AI Freelance Arbitrage', 'Step 1: Create an Upwork profile specialized in "AI Real Estate Walkthroughs".\nStep 2: Use DreamForge to build 3D property models from 2D images.\nStep 3: Use Fish.audio to add a professional voiceover in seconds.\nStep 4: Charge \$100+ per video. Total work time: 30 minutes.'),
-      )),
-      const SizedBox(height: 32),
-      const _StaggeredEntry(index: 6, child: _SectionHeader(title: '✉️ Plug & Play Scripts', sub: 'Click the copy icon to use instantly')),
-      const SizedBox(height: 16),
-      _StaggeredEntry(index: 7, child: _ScriptTile(title: 'LinkedIn Outreach', content: 'Hey [Name], I noticed you are scaling your startup. I built an AI automation module that handles [Specific Pain Point]. Can I send you a 1-min demo of how this works for your specific use case? No strings attached.', isLocked: !isUnlocked)),
-      _StaggeredEntry(index: 8, child: _ScriptTile(title: 'SaaS Pricing Hook', content: 'Launch at ₹999/mo for first 50 users. Then bump to ₹2,499. Creates scarcity and pays for your API credits instantly.', isLocked: !isUnlocked),),
-      const SizedBox(height: 100),
-    ],
+  Widget build(BuildContext context) => BlocBuilder<PremiumBloc, PremiumState>(
+    builder: (context, state) {
+      if (!state.isPremium) {
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            _StaggeredEntry(index: 0, child: _LockBanner(onTap: onPay)),
+            const SizedBox(height: 12),
+            const _StaggeredEntry(index: 1, child: _SectionHeader(title: 'Founder Pack Locked', sub: 'Buy Synap Pro to unlock complete startup roadmap')),
+            const SizedBox(height: 100),
+          ],
+        );
+      }
+      return ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const SizedBox(height: 20),
+          const _StaggeredEntry(index: 1, child: _SectionHeader(title: 'Earn ₹1L in 48 Hours', sub: 'Click any step to reveal secret execution details')),
+          const SizedBox(height: 16),
+          _StaggeredEntry(index: 2, child: _ChallengeRoadmap(
+            isLocked: false,
+          onStepTap: (title, detail) => _showDetail(context, title, detail),
+        )),
+        const SizedBox(height: 32),
+        const _StaggeredEntry(index: 3, child: _SectionHeader(title: '💰 Zero to ₹1L Models', sub: 'High-income India focused models')),
+        const SizedBox(height: 16),
+        _StaggeredEntry(index: 4, child: _BluePrintCard(
+          title: 'Local Business Automation',
+          desc: 'Setup WhatsApp Chatbots for local shops. Charge ₹15k setup + ₹2k/mo AMC.',
+          icon: '🏪',
+          isLocked: false,
+          onTap: () => _showDetail(context, '🏪 Local Automation Strategy', 'Step 1: Scrape Google Maps for local businesses (Gyms, Salons) with low reviews.\nStep 2: Message them: "I saw you are missing 24/7 booking support. Can I set up an AI bot for you for free for 3 days?"\nStep 3: Use Synap\'s AI bot template to deploy in 10 mins.\nStep 4: Close for ₹15,000 once they see the leads flowing.'),
+        )),
+        _StaggeredEntry(index: 5, child: _BluePrintCard(
+          title: 'Freelance AI Clones',
+          desc: 'Use Fish.audio for voice clones & DreamForge for 3D assets. High ticket orders.',
+          icon: '💎',
+          isLocked: false,
+          onTap: () => _showDetail(context, '💎 AI Freelance Arbitrage', 'Step 1: Create an Upwork profile specialized in "AI Real Estate Walkthroughs".\nStep 2: Use DreamForge to build 3D property models from 2D images.\nStep 3: Use Fish.audio to add a professional voiceover in seconds.\nStep 4: Charge \$100+ per video. Total work time: 30 minutes.'),
+        )),
+        const SizedBox(height: 32),
+        const _StaggeredEntry(index: 6, child: _SectionHeader(title: '✉️ Plug & Play Scripts', sub: 'Click the copy icon to use instantly')),
+        const SizedBox(height: 16),
+        _StaggeredEntry(index: 7, child: _ScriptTile(title: 'LinkedIn Outreach', content: 'Hey [Name], I noticed you are scaling your startup. I built an AI automation module that handles [Specific Pain Point]. Can I send you a 1-min demo of how this works for your specific use case? No strings attached.', isLocked: false)),
+        _StaggeredEntry(index: 8, child: _ScriptTile(title: 'SaaS Pricing Hook', content: 'Launch at ₹999/mo for first 50 users. Then bump to ₹2,499. Creates scarcity and pays for your API credits instantly.', isLocked: false),),
+        const SizedBox(height: 100),
+        ],
+      );
+    },
   );
 }
 
 // ── TAB 2: EARNING LAB ───────────────────────────────────────────
 
 class _EarningLabTab extends StatelessWidget {
-  final bool isUnlocked; final VoidCallback onPay;
-  const _EarningLabTab({required this.isUnlocked, required this.onPay});
+  final VoidCallback onPay;
+  const _EarningLabTab({required this.onPay});
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(20),
-    children: [
-      if (!isUnlocked) _StaggeredEntry(index: 0, child: _LockBanner(onTap: onPay)),
-      const SizedBox(height: 20),
-      const _StaggeredEntry(index: 1, child: _SectionHeader(title: '⚡ Optimization Lab', sub: 'Execution tips to burn bottlenecks')),
-      const SizedBox(height: 16),
-      _StaggeredEntry(index: 2, child: _TipCard(title: 'Speed-to-Market', tip: 'Use Claude + Antigravity GSD to ship MVPs in 48 hours. Focus on v0.1 value.', icon: '🔋')),
-      _StaggeredEntry(index: 3, child: _TipCard(title: 'Cost Cutting', tip: 'Run models locally with Pinokio to save \$100s in API tokens during development.', icon: '✂️')),
-      const SizedBox(height: 32),
-      const _StaggeredEntry(index: 4, child: _SectionHeader(title: '🛠️ The 50+ Tool Arsenal', sub: 'Secret weapons of rapid builders')),
-      const SizedBox(height: 16),
-      ...List.generate(_proTools.length, (i) => _StaggeredEntry(index: i + 5, child: _ProToolTile(tool: _proTools[i], isLocked: !isUnlocked))),
-      const SizedBox(height: 100),
-    ],
+  Widget build(BuildContext context) => BlocBuilder<PremiumBloc, PremiumState>(
+    builder: (context, state) {
+      if (!state.isPremium) {
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            _StaggeredEntry(index: 0, child: _LockBanner(onTap: onPay)),
+            const SizedBox(height: 12),
+            const _StaggeredEntry(index: 1, child: _SectionHeader(title: 'Earning Lab Locked', sub: 'Buy Synap Pro to unlock 50+ pro tools')),
+            const SizedBox(height: 100),
+          ],
+        );
+      }
+      return ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const SizedBox(height: 20),
+          const _StaggeredEntry(index: 1, child: _SectionHeader(title: '⚡ Optimization Lab', sub: 'Execution tips to burn bottlenecks')),
+        const SizedBox(height: 16),
+        _StaggeredEntry(index: 2, child: _TipCard(title: 'Speed-to-Market', tip: 'Use Claude + Antigravity GSD to ship MVPs in 48 hours. Focus on v0.1 value.', icon: '🔋')),
+        _StaggeredEntry(index: 3, child: _TipCard(title: 'Cost Cutting', tip: 'Run models locally with Pinokio to save \$100s in API tokens during development.', icon: '✂️')),
+        const SizedBox(height: 32),
+        const _StaggeredEntry(index: 4, child: _SectionHeader(title: '🛠️ The 50+ Tool Arsenal', sub: 'Secret weapons of rapid builders')),
+        const SizedBox(height: 16),
+        ...List.generate(_proTools.length, (i) => _StaggeredEntry(index: i + 5, child: _ProToolTile(tool: _proTools[i], isLocked: false))),
+        const SizedBox(height: 100),
+        ],
+      );
+    },
   );
 }
 
@@ -372,8 +396,7 @@ class _TipCard extends StatelessWidget {
 }
 
 class _UnifiedMastermindHeader extends StatelessWidget {
-  final bool isUnlocked;
-  const _UnifiedMastermindHeader({required this.isUnlocked});
+  const _UnifiedMastermindHeader();
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -401,7 +424,15 @@ class _UnifiedMastermindHeader extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 20),
-          Text(isUnlocked ? 'FULL ACCESS ACTIVATED ✅' : 'ACTIVATE BOTH FOR ₹9', style: const TextStyle(color: Color(0xFF00D4AA), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1)),
+          BlocBuilder<PremiumBloc, PremiumState>(
+            builder: (context, state) {
+              final unlocked = state.isPremium;
+              return Text(
+                unlocked ? 'FULL ACCESS ACTIVATED ✅' : 'BUY SYNAP PRO',
+                style: const TextStyle(color: Color(0xFF00D4AA), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1),
+              );
+            },
+          ),
         ]),
       ],
     ),
@@ -425,12 +456,19 @@ class _LockBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.red.withOpacity(0.3))),
-    child: Row(children: [
-      const Icon(Icons.lock_person_outlined, color: Colors.redAccent, size: 20),
-      const SizedBox(width: 12),
-      const Expanded(child: Text('Unlock Earning Lab + Founder Pack for ₹9.', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold))),
-      TextButton(onPressed: onTap, child: const Text('Unlock All', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))),
+    decoration: BoxDecoration(color: Colors.red.withOpacity(0.12), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.red.withOpacity(0.3))),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Icon(Icons.lock_person_outlined, color: Colors.redAccent, size: 20),
+        const SizedBox(width: 12),
+        const Expanded(child: Text('Get Synap Pro (₹19) to unlock all templates & earning strategies.', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold))),
+        TextButton(onPressed: onTap, child: const Text('Unlock All', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))),
+      ]),
+      const SizedBox(height: 10),
+      Text(
+        'Keep Synap installed to preserve your saved workflows, templates, and premium access. Uninstalling resets your progress.',
+        style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, height: 1.4),
+      ),
     ]),
   );
 }
@@ -450,7 +488,7 @@ class _FloatingPayButton extends StatelessWidget {
       child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(Icons.auto_awesome, color: Colors.yellow),
         SizedBox(width: 12),
-        Text('ACTIVATE BOTH FOR ₹9', style: TextStyle(fontFamily: 'Syne', fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
+        Text('BUY SYNAP PRO', style: TextStyle(fontFamily: 'Syne', fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
       ]),
     ),
   );

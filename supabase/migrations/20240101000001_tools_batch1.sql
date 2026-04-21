@@ -94,7 +94,7 @@ INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,web
 ('sora','Sora (OpenAI)','sora','video','OpenAI''s text-to-video model generating high-quality HD video clips.','🎬','https://sora.com',false,true,18500),
 ('kling','Kling AI','kling','video','Chinese AI video generator producing realistic 2-minute video clips.','🎥','https://klingai.com',true,true,9200),
 ('pika','Pika Labs','pika','video','AI video generation and editing tool for short creative videos.','⚡','https://pika.art',true,true,7800),
-('luma-dream','Luma Dream Machine','luma','video','AI video generator from images and text with cinematic quality.','🌟','https://lumalabs.ai/dream-machine',true,true,8400),
+('runway-gen3','Runway Gen-3','runway-gen3','video','AI video generation and editing model for cinematic creative workflows.','🌟','https://runwayml.com',true,true,8400),
 ('morph-studio','Morph Studio','morph','video','AI video generation platform for professional quality output.','🔮','https://morphstudio.com',true,false,2100),
 ('haiper','Haiper','haiper','video','AI video generation tool for creating videos from text or image prompts.','💫','https://haiper.ai',true,false,1800),
 ('invideo-ai','InVideo AI','invideo','video','AI video creator for YouTube, ads, and social media with voiceover.','📹','https://invideo.io',true,true,6700),

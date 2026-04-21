@@ -2,8 +2,10 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/moving_border_button.dart';
 
 // ── COLORS ───────────────────────────────────────────────────
@@ -287,6 +289,13 @@ class _SplashViewState extends State<_SplashView> with SingleTickerProviderState
                     TextSpan(
                       text: 'Privacy Policy',
                       style: TextStyle(color: OnboardingColors.cyan.withOpacity(0.6)),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          final url = Uri.parse('https://synap-ac981.web.app/privacy-policy.html');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          }
+                        },
                     ),
                   ],
                 ),
@@ -409,10 +418,6 @@ class _PremiumButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isPrimary 
-        ? const Color(0xFF003C5A) // Deep teal/blue for primary
-        : Colors.white.withOpacity(0.04);
-
     return SynapMovingBorderButton(
       onTap: onPressed,
       isAnimating: isAnimating,
@@ -508,7 +513,14 @@ class _AuthViewState extends State<_AuthView> with SingleTickerProviderStateMixi
             children: [
               _buildMiniLogo(),
               const SizedBox(height: 4),
-              Text('Synap', style: GoogleFonts.syne(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Synap', style: GoogleFonts.syne(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                  const SizedBox(width: 2),
+                  Text('.AI', style: GoogleFonts.syne(color: const Color(0xFF00C8E8), fontSize: 16, fontWeight: FontWeight.w800)),
+                ],
+              ),
               const SizedBox(height: 40),
             ],
           ),

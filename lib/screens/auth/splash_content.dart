@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'auth_screen.dart';
 import '../../widgets/moving_border_button.dart';
 
@@ -62,8 +64,15 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
                     ),
                     const TextSpan(text: ' & '),
                     TextSpan(
-                      text: 'Privacy Policy',
+                      text: 'Website',
                       style: TextStyle(color: AuthColors.cyan.withOpacity(0.6)),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          final url = Uri.parse('https://synap-ac981.web.app/privacy-policy.html');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          }
+                        },
                     ),
                   ],
                 ),

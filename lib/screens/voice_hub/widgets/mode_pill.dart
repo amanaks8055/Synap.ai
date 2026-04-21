@@ -1,48 +1,58 @@
+// lib/screens/voice_hub/widgets/mode_pill.dart
 import 'package:flutter/material.dart';
 
 class ModePill extends StatelessWidget {
-  final String icon, label;
+  final String label;
   final bool active;
   final VoidCallback onTap;
-  
+  final IconData icon;
+
   const ModePill({
     super.key,
-    required this.icon,
     required this.label,
     required this.active,
     required this.onTap,
+    required this.icon,
   });
 
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
+  Widget build(BuildContext context) {
+    return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: active
-              ? const Color(0xFF00C8E8).withOpacity(0.08)
-              : const Color(0xFF090D16),
+          color: active ? Colors.white.withOpacity(0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: active
-                ? const Color(0xFF00C8E8).withOpacity(0.3)
-                : const Color(0xFF131B27)),
+            color: active ? Colors.white24 : Colors.white.withOpacity(0.05),
+          ),
+          boxShadow: active 
+            ? [BoxShadow(color: Colors.white.withOpacity(0.02), blurRadius: 10)] 
+            : [],
         ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 16)),
+            Icon(
+              icon, 
+              size: 16, 
+              color: active ? Colors.white : Colors.white38
+            ),
             const SizedBox(width: 8),
-            Text(label, style: TextStyle(
-              fontFamily: 'Syne', fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: active
-                  ? const Color(0xFF00C8E8)
-                  : const Color(0xFF3A4A60))),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? Colors.white : Colors.white38,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }

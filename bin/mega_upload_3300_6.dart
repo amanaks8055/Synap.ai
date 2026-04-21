@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -81,7 +82,7 @@ void main() async {
     t('lens-org-ai-pro','The Lens','science','Leading open platform for patent and scholarly data using AI analytics.','https://lens.org',true,true,84000, freeTier:'Completely free for the public', price:0, tips:'Find links between science and patents | AI-powered "Metrics" | Non-profit'),
 
     // ━━━ FINAL GEMS v25 (Modern Commerce) ━━━
-    t('medusa-ai-pro-ecom','Medusa','code','The open-source Shopify alternative for developers with AI-powered sync.','https://medusajs.com',true,true,58000, freeTier:'Completely free open source', price:0, tips:'Best for custom e-commerce | AI-powered "Order" management | Modern JS'),
+    t('shopify-magic-ai','Shopify Magic','code','Built-in AI toolkit for product copy, store operations, and commerce workflows.','https://shopify.com/magic',true,true,58000, freeTier:'Included with Shopify plans', price:29, priceTier:'Basic monthly', tips:'Native Shopify integration | AI product and marketing assist | Reliable brand assets'),
     t('vendure-ai-pro-dev','Vendure','code','Headless commerce framework in TypeScript with AI-powered search help.','https://vendure.io',true,true,35000, freeTier:'Completely free open source', price:0, tips:'Best for Next.js e-com | AI-powered "Product" data | Developer focus'),
     t('strapi-ai-pro-cms','Strapi','code','Leading open-source headless CMS with AI-powered content and SEO help.','https://strapi.io',true,true,180000, freeTier:'Free forever community version', price:0, tips:'The industry standard for headless | AI-powered "API" help | Clean and fast'),
     t('payload-ai-pro-cms','Payload CMS','code','Modern TypeScript headless CMS and app framework with AI-powered sync.','https://payloadcms.com',true,true,58000, freeTier:'Free for individuals and projects', price:0, tips:'Best for engineering teams | AI-powered "Database" help | blazingly fast'),

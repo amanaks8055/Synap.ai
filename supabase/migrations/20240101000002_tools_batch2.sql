@@ -52,7 +52,7 @@ INSERT INTO public.ai_tools (id,name,slug,category_id,description,icon_emoji,web
 ('kensho','Kensho (S&P)','kensho','finance','AI analytics platform for financial markets owned by S&P Global.','📊','https://kensho.com',false,false,2100),
 ('palantir','Palantir AI','palantir','finance','Enterprise AI platform for data integration and financial decision-making.','🔮','https://palantir.com',false,false,4200),
 ('quantconnect','QuantConnect','quantconnect','finance','AI algorithmic trading platform for backtesting and live trading strategies.','📉','https://quantconnect.com',true,false,3100),
-('numerai','Numerai','numerai','finance','AI hedge fund powered by data scientist predictions using machine learning.','🎲','https://numer.ai',true,false,2200),
+('alpaca-ai','Alpaca','alpaca-ai','finance','API-first trading platform for algorithmic investing and market automation.','📈','https://alpaca.markets',true,false,2200),
 ('tradingview-ai','TradingView AI','tradingview-ai','finance','AI-powered chart analysis and trading signals on the world''s top chart platform.','📈','https://tradingview.com',true,false,8900),
 ('stock-hero','StockHero','stockhero','finance','AI stock trading bot platform running automated strategies 24/7.','🤖','https://stockhero.ai',false,false,1600),
 ('composer','Composer','composer','finance','No-code AI investment strategy builder with automated rebalancing.','🎵','https://composer.trade',false,false,1900),

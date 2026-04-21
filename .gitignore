@@ -11,8 +11,12 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+.env
 .env*
 *.secret
+
+# Chrome extension local config (do not commit)
+extension/config.js
 
 # Firebase/Google services (Security sensitive)
 **/google-services.json
@@ -49,3 +53,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# App Signing (Safety First)
+*.jks
+*.keystore
+android/key.properties
+
+# Diagnostic & temp files (Security: may expose internal metadata)
+security_report*.json
+broken_tools.json
+cols.json
+analyze_out*.txt
+analyze_output*.txt
+logcat_tools.txt
+tmp_*.dart
+test_script.dart
+test_rss.dart

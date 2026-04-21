@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -95,7 +96,7 @@ void main() async {
     t('token-terminal-ai','Token Terminal','business','Financial data for blockchains and dapps with AI-powered reporting.','https://tokenterminal.com',true,true,35000, freeTier:'Free to browse basic data', price:325, priceTier:'Pro monthly', tips:'Best for fundamental analysis | AI identifies profitable protocols | High trust'),
     t('messari-ai-pro','Messari','business','Leading crypto research and data platform with AI-powered news tools.','https://messari.io',true,true,120000, freeTier:'Free basic research', price:25, priceTier:'Pro monthly', tips:'Track the whole ecosystem | AI-powered "Governor" for DAOs | Detailed research'),
     t('elliptic-ai-pro','Elliptic','business','Global leader in crypto risk management and compliance with AI.','https://elliptic.co',false,false,12000, freeTier:'Institutional only', price:0, tips:'Best for banking and legal | AI verifies crypto transactions | Safety focus'),
-    t('chainalysis-ai','Chainalysis','business','The most trusted blockchain data and analytics platform using AI.','https://chainalysis.com',false,true,92000, freeTier:'Free reports available', price:0, tips:'Partner of FBI and IRS | AI identifies illegal activities | The industry gold standard'),
+    t('trm-labs-ai','TRM Labs','business','Blockchain intelligence platform for AML, sanctions, and fraud detection with AI.','https://trmlabs.com',false,true,92000, freeTier:'Institutional only', price:0, tips:'Trusted by institutions | AI-powered wallet risk scoring | Strong investigation tooling'),
 
     // ━━━ FINAL GEMS ━━━
     t('openai-sora-video','Sora (Research)','video','OpenAI\'s upcoming text-to-video model that creates highly realistic scenes.','https://openai.com/sora',false,true,999999, freeTier:'Currently not public', price:0, tips:'Most anticipated AI tool | Photorealistic video up to 60s | Physics-accurate'),

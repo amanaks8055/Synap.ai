@@ -67,7 +67,14 @@ class _LoginCardState extends State<LoginCard> with SingleTickerProviderStateMix
             children: [
               _buildMiniLogo(),
               const SizedBox(height: 4),
-              Text('Synap', style: GoogleFonts.syne(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Synap', style: GoogleFonts.syne(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                  const SizedBox(width: 2),
+                  Text('.AI', style: GoogleFonts.syne(color: const Color(0xFF00C8E8), fontSize: 16, fontWeight: FontWeight.w800)),
+                ],
+              ),
               const SizedBox(height: 40),
             ],
           ),

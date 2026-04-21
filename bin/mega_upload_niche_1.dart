@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -63,7 +64,7 @@ void main() async {
     t('dune-ai','Dune Analytics','finance','Community-driven crypto data analytics with AI-powered SQL helper.','https://dune.com',true,true,35000, freeTier:'Free forever basic', price:349, priceTier:'Pro: private queries and more', tips:'Learn SQL with AI | Create custom crypto dashboards | Real-time on-chain data'),
     t('arkham-ai','Arkham Intelligence','finance','AI-powered blockchain intelligence platform for deanonymizing wallets.','https://arkhamintelligence.com',true,true,25000, freeTier:'Currently free to use', price:0, tips:'Visualize wallet connections | AI for entity identification | Crypto sleuthing tool'),
     t('elliptic-ai','Elliptic','finance','Blockchain risk management and compliance with AI-powered monitoring.','https://elliptic.co',false,false,4200, freeTier:'Demo available', price:0, tips:'Best for institucional crypto safety | AI detects money laundering | Trusted by exchanges'),
-    t('chainalysis-ai','Chainalysis','finance','Leading blockchain data platform using AI to solve cybercrimes.','https://chainalysis.com',false,true,9600, freeTier:'Institutional only', price:0, tips:'Official investigator for governments | Tracks crypto scams and hacks | AI-powered link analysis'),
+    t('trm-labs-ai','TRM Labs','finance','Blockchain intelligence platform helping teams detect fraud and sanctions risk with AI.','https://trmlabs.com',false,true,9600, freeTier:'Institutional only', price:0, tips:'Used by major exchanges | AI-powered compliance monitoring | Strong investigation workflows'),
 
     // ━━━ PHARMA & BIOTECH AI ━━━
     t('insilico-medicine','Insilico Medicine','science','AI platform for drug discovery and aging research.','https://insilico.com',false,true,3500, freeTier:'Institutional only', price:0, tips:'Pioneer in AI-generated drugs | Generative biology leader | Significant FDA pipeline'),

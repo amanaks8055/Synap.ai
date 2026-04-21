@@ -1,0 +1,47 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="globeClip">
+      <circle cx="256" cy="256" r="205"/>
+    </clipPath>
+    <style>
+      .tileA { fill: #0e5f98; }
+      .tileB { fill: #1f79b9; }
+      .tileC { fill: #2b95cf; }
+      .tileD { fill: #76b9de; }
+    </style>
+  </defs>
+
+  <g transform="rotate(-24 256 256)" clip-path="url(#globeClip)">
+    <rect x="66" y="86" width="66" height="50" rx="12" class="tileD"/>
+    <rect x="146" y="74" width="74" height="54" rx="12" class="tileB"/>
+    <rect x="230" y="68" width="82" height="56" rx="12" class="tileA"/>
+    <rect x="322" y="78" width="78" height="54" rx="12" class="tileB"/>
+
+    <rect x="56" y="150" width="72" height="54" rx="12" class="tileC"/>
+    <rect x="138" y="138" width="76" height="56" rx="12" class="tileB"/>
+    <rect x="224" y="132" width="84" height="58" rx="12" class="tileD"/>
+    <rect x="316" y="140" width="80" height="56" rx="12" class="tileA"/>
+    <rect x="408" y="154" width="58" height="54" rx="12" class="tileC"/>
+
+    <rect x="48" y="216" width="78" height="58" rx="12" class="tileA"/>
+    <rect x="134" y="206" width="82" height="58" rx="12" class="tileB"/>
+    <rect x="222" y="200" width="88" height="60" rx="12" class="tileC"/>
+    <rect x="318" y="208" width="82" height="58" rx="12" class="tileB"/>
+    <rect x="408" y="222" width="64" height="56" rx="12" class="tileD"/>
+
+    <rect x="58" y="286" width="76" height="56" rx="12" class="tileD"/>
+    <rect x="144" y="274" width="82" height="58" rx="12" class="tileB"/>
+    <rect x="234" y="268" width="88" height="60" rx="12" class="tileA"/>
+    <rect x="330" y="278" width="80" height="58" rx="12" class="tileC"/>
+    <rect x="418" y="292" width="60" height="56" rx="12" class="tileB"/>
+
+    <rect x="76" y="352" width="72" height="54" rx="12" class="tileC"/>
+    <rect x="160" y="340" width="76" height="56" rx="12" class="tileB"/>
+    <rect x="246" y="334" width="84" height="58" rx="12" class="tileA"/>
+    <rect x="338" y="344" width="78" height="56" rx="12" class="tileD"/>
+
+    <rect x="100" y="412" width="64" height="48" rx="12" class="tileD"/>
+    <rect x="178" y="402" width="70" height="50" rx="12" class="tileC"/>
+    <rect x="258" y="398" width="76" height="52" rx="12" class="tileA"/>
+  </g>
+</svg>

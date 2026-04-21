@@ -8,6 +8,7 @@ import '../blocs/theme/theme_bloc.dart';
 import '../blocs/tracker/tracker_bloc.dart';
 import '../config/router.dart';
 import '../widgets/global_background.dart';
+import '../widgets/offline_overlay.dart';
 
 class SynapApp extends StatelessWidget {
   const SynapApp({super.key});
@@ -32,8 +33,10 @@ class SynapApp extends StatelessWidget {
             initialRoute: '/',
             onGenerateRoute: AppRouter.onGenerateRoute,
             builder: (context, child) {
-              return GlobalInterstellarBackground(
-                child: child ?? const SizedBox.shrink(),
+              return OfflineOverlay(
+                child: GlobalInterstellarBackground(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               );
             },
           );

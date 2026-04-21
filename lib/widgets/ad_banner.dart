@@ -34,7 +34,7 @@ class _AdBannerPlaceholderState extends State<AdBannerPlaceholder> {
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          debugPrint('AdBanner failed to load: $error');
+
         },
       ),
     )..load();
@@ -104,7 +104,7 @@ class _AdInlinePlaceholderState extends State<AdInlinePlaceholder> {
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          debugPrint('AdInline failed to load: $error');
+
         },
       ),
     )..load();

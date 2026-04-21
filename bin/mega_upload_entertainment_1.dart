@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -68,7 +69,7 @@ void main() async {
     t('epic-books-ai','Epic!','education','The leading digital library for kids with AI-powered reading recommendations.','https://getepic.com',true,true,120000, freeTier:'Free limited daily reading', price:5, priceTier:'Family monthly billed annually', tips:'40k+ books for kids | AI-powered read-to-me features | Trusted by teachers'),
     t('khan-academy-kids','Khan Academy Kids','education','Award-winning free educational app for kids 2-8 with AI-powered lessons.','https://khanacademy.org/kids',true,true,150000, freeTier:'Completely free forever', price:0, tips:'Created with Stanford experts | AI-powered "Teacher" guide | 100% non-profit'),
     t('prodigy-math-ai','Prodigy Math','education','Fantasy world where kids learn math through AI-powered battles and quests.','https://prodigygame.com',true,true,92000, freeTier:'Completely free to play', price:6, priceTier:'Premium membership monthly', tips:'High engagement | AI-powered adaptive difficulty | Best for elementary school'),
-    t('mystery-science-ai','Mystery Science','education','Leading open-and-go science lessons with AI-powered video questions.','https://mysteryscience.com',true,true,58000, freeTier:'Free limited lessons', price:0, tips:'Owned by Discovery Education | Expert science explainers | Used by 50% of US schools'),
+    t('khanmigo-ai','Khanmigo (Khan Academy)','education','AI learning assistant for students and teachers built by Khan Academy.','https://khanacademy.org/khan-labs',true,true,58000, freeTier:'Free access for educators in supported programs', price:0, tips:'Trusted education brand | AI tutor with pedagogy guardrails | Great for classroom learning'),
     t('brainpop-ai-pro','BrainPOP','education','Animated educational site for kids with AI-powered quizzes and games.','https://brainpop.com',true,true,120000, freeTier:'Free topic of the day', price:0, tips:'The famous "Tim and Moby" | AI for identifying learning gaps | Multi-subject'),
     t('outschool-ai-pro','Outschool','education','Marketplace of live online classes for kids with AI-powered matching.','https://outschool.com',true,true,45000, freeTier:'Free to browse classes', price:15, priceTier:'Avg per class starting', tips:'100k+ unique classes | AI identifies best teachers | Small group learning'),
     t('tynker-ai-pro','Tynker','education','Leading platform for kids to learn coding with AI-powered path.','https://tynker.com',true,false,35000, freeTier:'Free basic course', price:30, priceTier:'Quarterly subscription', tips:'Master Minecraft and Roblox coding | AI-powered feedback | Fun and gamified'),

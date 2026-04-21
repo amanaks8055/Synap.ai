@@ -1,10 +1,9 @@
 // ══════════════════════════════════════════════════════════════
 // SYNAP — DataMigrationService
-// One-time migration: uploads MockData.tools → Supabase ai_tools
+// One-time migration: uploads MockData.tools → Supabase tools
 // Call migrateToolsToSupabase() once, then never again.
 // ══════════════════════════════════════════════════════════════
 
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/mock_data.dart';
@@ -12,14 +11,12 @@ import '../data/mock_data.dart';
 class DataMigrationService {
   static const _migrationKey = 'synap_tools_migrated_v1';
 
-  /// Upload all MockData.tools to Supabase ai_tools table.
+  /// Upload all MockData.tools to Supabase tools table.
   /// Safe to call multiple times — uses upsert so no duplicates.
   static Future<MigrationResult> migrateToolsToSupabase() async {
     try {
       final sb = Supabase.instance.client;
       final tools = MockData.tools;
-
-      debugPrint('[Migration] Starting: ${tools.length} tools to upload...');
 
       // Convert Tool objects → JSON rows for Supabase
       // Upload in batches of 50 to avoid timeouts
@@ -56,19 +53,20 @@ class DataMigrationService {
         await sb.from('ai_tools').upsert(rows, onConflict: 'id');
         uploaded += batch.length;
 
-        debugPrint('[Migration] Progress: $uploaded / ${tools.length}');
+
+
         
         // Yield to allow main thread to process frames
         await Future.delayed(Duration.zero);
       }
 
-      debugPrint('[Migration] ✅ Done! $uploaded tools uploaded to Supabase.');
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_migrationKey, true);
       return MigrationResult(success: true, count: uploaded);
 
     } catch (e) {
-      debugPrint('[Migration] ❌ Failed: $e');
+
       return MigrationResult(success: false, error: e.toString());
     }
   }

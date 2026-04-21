@@ -17,3 +17,8 @@ class ThemeSetDark extends ThemeEvent {
 class ThemeSetLight extends ThemeEvent {
   const ThemeSetLight();
 }
+
+/// Internal event dispatched from constructor to load saved theme
+class ThemeInitRequested extends ThemeEvent {
+  const ThemeInitRequested();
+}

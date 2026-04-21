@@ -3,13 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../blocs/premium/premium_bloc.dart';
-import '../blocs/theme/theme_bloc.dart';
 import '../services/auth_service.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/tracker/tracker_home_widget.dart';
 import '../services/user_profile_service.dart';
-import 'startup/startup_kit_screen.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -57,11 +55,6 @@ class _MenuScreenState extends State<MenuScreen> {
                     ));
                   }
 
-                  items.add(_MenuItem(
-                    icon: Icons.rocket_launch_outlined,
-                    title: 'Founder Resources',
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StartupKitScreen())),
-                  ));
 
                   items.add(_MenuItem(
                     icon: Icons.bar_chart_rounded,
@@ -70,21 +63,21 @@ class _MenuScreenState extends State<MenuScreen> {
                   ));
 
                   items.add(_MenuItem(
-                    icon: Icons.mic_none_rounded,
-                    title: 'Voice Hub',
-                    onTap: () => Navigator.pushNamed(context, '/voice'),
+                    icon: Icons.language_rounded,
+                    title: 'Website',
+                    onTap: () => _openUrl(context, 'https://synap-muse.lovable.app'),
                   ));
 
                   items.add(_MenuItem(
                     icon: Icons.shield_outlined,
                     title: 'Privacy Policy',
-                    onTap: () => _openUrl(context, 'https://synap.app/privacy'),
+                    onTap: () => _openUrl(context, 'https://synap-ac981.web.app/privacy-policy.html'),
                   ));
 
                   items.add(_MenuItem(
                     icon: Icons.mail_outline_rounded,
                     title: 'Contact',
-                    onTap: () => _openUrl(context, 'mailto:contact@synap.app'),
+                    onTap: () => _openUrl(context, 'mailto:zaptime.official@gmail.com'),
                   ));
 
                   items.add(_MenuItem(
@@ -98,6 +91,10 @@ class _MenuScreenState extends State<MenuScreen> {
                     title: 'Share App',
                     onTap: () => _openUrl(context, 'https://play.google.com/store/apps/details?id=com.synap.synap'),
                   ));
+
+                  // Upcoming features section (informational)
+                  items.add(const SizedBox(height: 16));
+                  items.add(const _UpcomingFeaturesCard());
 
                   items.add(const _SignOutButton());
 
@@ -127,7 +124,7 @@ class _MenuScreenState extends State<MenuScreen> {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      debugPrint('⚠️ Could not open URL: $e');
+
     }
   }
 }
@@ -160,6 +157,382 @@ class _MenuGroup extends StatelessWidget {
             return children[i ~/ 2];
           },
         ),
+      ),
+    );
+  }
+}
+
+class _UpcomingFeaturesCard extends StatelessWidget {
+  const _UpcomingFeaturesCard();
+
+  void _openDetails(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: SynapStyles.bgSecondary(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => const _UpcomingFeaturesSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _openDetails(context),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: SynapStyles.bgCard(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: SynapStyles.border(context), width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Upcoming Features',
+              style: TextStyle(
+                color: SynapStyles.textPrimary(context),
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'These will unlock your personal AI workspace. Keep Synap installed so your templates, workflows, and progress stay saved.',
+              style: TextStyle(
+                color: SynapStyles.textMuted(context),
+                fontSize: 11,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _FeatureRow(label: 'Smart Prompt Composer', icon: Icons.auto_fix_high_outlined),
+            const SizedBox(height: 10),
+            _FeatureRow(label: 'One‑Tap Workflow Chains', icon: Icons.link_rounded),
+            const SizedBox(height: 10),
+            _FeatureRow(label: 'Adaptive Personal Feed', icon: Icons.dynamic_feed_rounded),
+            const SizedBox(height: 10),
+            _FeatureRow(label: 'Voice Assistant Mode', icon: Icons.mic_external_on_outlined),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Icon(Icons.lock_outline, size: 16, color: SynapColors.accent.withOpacity(0.8)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Uninstalling removes your saved workflows and templates—keep Synap to keep your work.',
+                    style: TextStyle(color: SynapStyles.textMuted(context), fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UpcomingFeaturesSheet extends StatelessWidget {
+  const _UpcomingFeaturesSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.65,
+      minChildSize: 0.4,
+      maxChildSize: 0.92,
+      builder: (_, controller) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                SynapStyles.bgSecondary(context),
+                SynapStyles.bgSecondary(context).withOpacity(0.85),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: SynapColors.textMuted.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'What’s coming next',
+                style: TextStyle(
+                  color: SynapStyles.textPrimary(context),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView(
+                  controller: controller,
+                  children: [
+                    const _FeatureSectionHeader(title: 'Power User Essentials'),
+                    _FeatureCard(
+                      icon: Icons.auto_fix_high_rounded,
+                      title: 'Smart Prompt Composer',
+                      description: 'Turn plain language into high‑quality prompts optimized for any tool.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.link_rounded,
+                      title: 'One‑Tap Workflow Chains',
+                      description: 'Run multi‑step tool sequences like a true AI agent with a single tap.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.dynamic_feed_rounded,
+                      title: 'Adaptive Personal Feed',
+                      description: 'Home screen learns your usage and recommends tools you actually need.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.mic_external_on_outlined,
+                      title: 'Voice Assistant Mode',
+                      description: 'Tell Synap what you want; it selects the best tool and fills the prompt for you.',
+                    ),
+                    const SizedBox(height: 14),
+                    const _FeatureSectionHeader(title: 'Creator + Team Engine'),
+                    _FeatureCard(
+                      icon: Icons.dashboard_customize_rounded,
+                      title: 'Progress & Productivity Dashboard',
+                      description: 'Track your time saved, streaks, and productivity metrics.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.offline_bolt_rounded,
+                      title: 'Offline Toolkit + Smart Cache',
+                      description: 'Continue working even without internet by caching your core tools.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.dashboard_customize_rounded,
+                      title: 'Creator Inspiration Board',
+                      description: 'Save collections of prompts and tools as boards for future campaigns.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.group_work_rounded,
+                      title: 'Multi‑User Workspaces',
+                      description: 'Share templates and workflows with your team, with access controls.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.api_rounded,
+                      title: 'Custom API Tool Connectors',
+                      description: 'Connect internal APIs (CRM, docs, database) as AI tools.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.receipt_long_rounded,
+                      title: 'Audit Log & History',
+                      description: 'Track who ran what and when for compliance and transparency.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.verified_user_rounded,
+                      title: 'Governance & Output Controls',
+                      description: 'Enforce company policies by blocking risky output automatically.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.style_rounded,
+                      title: 'Brand Voice Engine',
+                      description: 'Ensure every output always matches your brand tone and guidelines.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.developer_mode_rounded,
+                      title: 'API + SDK Access',
+                      description: 'Embed Synap workflows into your own apps and systems.',
+                    ),
+                    _FeatureCard(
+                      icon: Icons.analytics_rounded,
+                      title: 'Real‑Time ROI Dashboard',
+                      description: 'Measure time saved, usage patterns, and team productivity.',
+                    ),
+                    const SizedBox(height: 20),
+                    _FeatureAlert(
+                      message: 'Your saved workflows and progress will stay safe only as long as the app is installed.',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FeatureSectionHeader extends StatelessWidget {
+  final String title;
+
+  const _FeatureSectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: SynapStyles.textPrimary(context),
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Container(
+            width: 48,
+            height: 28,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [SynapColors.accent, SynapColors.accent.withOpacity(0.6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Center(
+              child: Icon(Icons.star, size: 16, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const _FeatureCard({required this.icon, required this.title, required this.description});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: SynapStyles.bgCard(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: SynapStyles.border(context), width: 0.6),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [SynapColors.accent.withOpacity(0.9), SynapColors.accent.withOpacity(0.4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 18, color: Colors.white),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: SynapStyles.textPrimary(context),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: SynapStyles.textMuted(context),
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureRow extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _FeatureRow({required this.label, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: SynapColors.accent),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(color: SynapStyles.textPrimary(context), fontSize: 13),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FeatureAlert extends StatelessWidget {
+  final String message;
+
+  const _FeatureAlert({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: SynapStyles.bgCard(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: SynapStyles.border(context), width: 0.6),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: SynapColors.accent),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: SynapStyles.textMuted(context), fontSize: 12, height: 1.4),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -231,26 +604,6 @@ class _UserProfileCard extends StatelessWidget {
                               },
                             ),
                           ),
-                          if (premiumState.isPremium) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'PRO',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                       const SizedBox(height: 2),

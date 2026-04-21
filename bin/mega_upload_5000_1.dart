@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'env.dart';
 
 Map<String, dynamic> t(String id, String name, String cat, String desc,
     String url, bool free, bool featured, int clicks,
@@ -32,8 +33,8 @@ Map<String, dynamic> t(String id, String name, String cat, String desc,
 }
 
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   final tools = <Map<String, dynamic>>[
@@ -59,7 +60,7 @@ void main() async {
     t('opendoor-ai-pro','Opendoor (iBuyer)','lifestyle','Leading iBuyer platform using AI-powered "Offer" engine for home sales.','https://opendoor.com',true,true,250000, freeTier:'Free instant cash offer', price:0, tips:'AI-powered "valuation" | Best for fast sales | market leader'),
 
     // ━━━ AI FOR CRYPTO & WEB3 (Elite) ━━━
-    t('chain-alysis-ai-pro','Chainalysis','code','The world\'s #1 blockchain data platform using AI for fraud and risk.','https://chainalysis.com',false,true,150000, freeTier:'Institutional only', price:0, tips:'The gold standard for crypto safety | AI-powered "Investigation" | High end'),
+    t('trm-labs-ai-pro','TRM Labs','code','Blockchain intelligence platform using AI to detect fraud and sanctions risks.','https://trmlabs.com',false,true,150000, freeTier:'Institutional only', price:0, tips:'AI-powered transaction tracing | Strong compliance workflows | Built for institutions'),
     t('elliptic-ai-pro-web','Elliptic','code','Leading crypto risk management and compliance with AI-powered monitoring.','https://elliptic.co',false,true,84000, freeTier:'Institutional only', price:0, tips:'Best for institutional crypto | AI-powered "Detection" | Global reach'),
     t('dune-ai-pro-data','Dune Analytics','code','The world\'s #1 community crypto data platform with new AI "Wizard".','https://dune.com',true,true,250000, freeTier:'Free forever basic version', price:0, tips:'AI-powered "Query" help | Best for blockchain research | Iconic'),
     t('nansen-ai-pro-web3','Nansen','code','Leading crypto analytics using AI-powered wallet labels and "Alpha".','https://nansen.ai',true,true,180000, freeTier:'Free basic version online', price:99, priceTier:'Standard monthly annual', tips:'AI-powered "Labels" are elite | Best for smart money tracking | High trust'),

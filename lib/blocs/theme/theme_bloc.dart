@@ -13,11 +13,12 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     on<ThemeToggled>(_onToggle);
     on<ThemeSetDark>(_onSetDark);
     on<ThemeSetLight>(_onSetLight);
-    _loadSaved();
+    on<ThemeInitRequested>(_onInit);
+    add(const ThemeInitRequested());
   }
 
-  Future<void> _loadSaved() async {
-    // Force dark mode by default, ignore saved light preference for now per user request
+  Future<void> _onInit(ThemeInitRequested event, Emitter<ThemeState> emit) async {
+    // Force dark mode by default
     emit(const ThemeState(mode: AppThemeMode.dark));
   }
 

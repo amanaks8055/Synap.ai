@@ -1,24 +1,38 @@
-import 'dart:math' as math;
 import 'dart:ui';
-import 'package:flutter/material.dart' hide ImageFilter;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// google_fonts used via pubspec theme
 import 'pro_kit_screen.dart';
-import 'founders_vault_screen.dart';
+import '../../blocs/premium/premium_bloc.dart';
+import '../../blocs/premium/premium_plans.dart';
 import '../../widgets/moving_border_button.dart';
 
 // ═══════════════════════════════════════════════════════════════
-// SYNAP — STARTUP KIT SCREEN v5 (Optimized)
-// 🆓 Free Tools | 📋 Original Docs | 🚀 Pro Booster Link
+// SYNAP — STARTUP KIT SCREEN v6 (Appointy-style Premium UI)
 // ═══════════════════════════════════════════════════════════════
 
+// ── Design Tokens ────────────────────────────────────────────
+const _kBgTop    = Color(0xFF1A0A4A);
+const _kBgMid    = Color(0xFF0D0825);
+const _kBgBot    = Color(0xFF07080F);
+const _kPurple   = Color(0xFF7C3AED);
+const _kPurpleL  = Color(0xFF9F6FFF);
+const _kCyan     = Color(0xFF00D4FF);
+const _kGold     = Color(0xFFFFB800);
+const _kGreen    = Color(0xFF00E5A0);
+const _kCard     = Color(0xFF130D35);
+const _kCardBd   = Color(0xFF2A1F5A);
+const _kTextDim  = Color(0xFF8B7FC0);
+const _kTextMid  = Color(0xFFBBB0E8);
+
+// ── Data Models (unchanged) ───────────────────────────────────
 class _Doc {
   final String title, subtitle, emoji, filename;
   final Color color;
@@ -33,18 +47,18 @@ const List<_Doc> _docs = [
     content: [
       {'heading': 'Problem Statement', 'body': 'Describe the core problem your product solves.\nWho faces this problem? How painful is it?\nWhat existing solutions fail and why?'},
       {'heading': 'Target Users', 'body': 'Primary: [User persona 1 — age, role, pain]\nSecondary: [User persona 2]\nUser stories:\n• As a [user], I want to [action] so that [benefit].\n• As a [user], I need [feature] because [reason].'},
-      {'heading': 'Core Features (MVP)', 'body': 'P0 (Must Have):\n• Feature 1 — reason why essential\n• Feature 2 — reason why essential\n• Feature 3 — reason why essential\n\nP1 (Should Have):\n• Feature 4\n• Feature 5\n\nP2 (Nice to Have):\n• Feature 6'},
+      {'heading': 'Core Features (MVP)', 'body': 'P0 (Must Have):\n• Feature 1 — reason why essential\n• Feature 2 — reason why essential\n\nP1 (Should Have):\n• Feature 4\n• Feature 5\n\nP2 (Nice to Have):\n• Feature 6'},
       {'heading': 'Success Metrics', 'body': 'Acquisition: DAU target, MAU target\nActivation: % users completing onboarding (target: 60%+)\nRetention: D7 retention (target: 40%+), D30 (20%+)\nRevenue: MRR target at 3 months, 6 months, 12 months\nNPS: Target score 50+'},
       {'heading': 'Timeline & Milestones', 'body': 'Week 1-2: Discovery + design\nWeek 3-4: MVP development sprint 1\nWeek 5-6: MVP development sprint 2\nWeek 7: Internal testing + bug fixes\nWeek 8: Beta launch (100 users)\nWeek 10: Public launch\nWeek 12: First revenue milestone'},
-      {'heading': 'Assumptions & Risks', 'body': 'Assumptions:\n• Users will pay [price] for [value]\n• Market size is large enough\n• Distribution channel works\n\nRisks:\n• Competitor launches similar product\n• Regulatory changes in market\n• Tech dependency / API changes\n• Team bandwidth constraints'},
+      {'heading': 'Assumptions & Risks', 'body': 'Assumptions:\n• Users will pay [price] for [value]\n• Market size is large enough\n\nRisks:\n• Competitor launches similar product\n• Regulatory changes in market\n• Tech dependency / API changes'},
     ]),
   _Doc(title: 'System Design', subtitle: 'Architecture Blueprint', emoji: '🏗️', filename: 'SystemDesign', color: Color(0xFF00D4AA),
     sections: ['🔌 API Design', '🗄️ Database Schema', '📡 Data Flow', '⚡ Scalability'],
     content: [
       {'heading': 'API Design', 'body': 'Type: REST API (or GraphQL if complex queries needed)\nBase URL: https://api.yourapp.com/v1\n\nEndpoints:\nPOST  /auth/login\nPOST  /auth/signup\nGET   /users/:id\nPUT   /users/:id\n\nAuth: JWT Bearer tokens, 24h expiry, refresh tokens'},
       {'heading': 'Database Schema', 'body': 'Primary DB: PostgreSQL (via Supabase)\n\nCore Tables:\nusers (\n  id UUID PRIMARY KEY,\n  email TEXT UNIQUE,\n  name TEXT,\n  created_at TIMESTAMPTZ\n)\n\nsessions (\n  id UUID, user_id UUID,\n  token TEXT, expires_at TIMESTAMPTZ\n)'},
-      {'heading': 'Data Flow', 'body': 'User → Flutter App → Supabase API → PostgreSQL DB\n\nReal-time: Supabase Realtime WebSockets\nCaching: Local Hive cache for offline support\nCDN: Supabase Storage for media files\n\nFlow:\n1. User action → BLoC event\n2. Repository API call → Supabase\n3. Response → BLoC state update → UI'},
-      {'heading': 'Scalability Plan', 'body': 'Phase 1 (0 to 1K users):\n• Supabase free/pro tier\n• Single region deployment\n• Simple caching\n\nPhase 2 (1K+ users):\n• Supabase Pro + connection pooling\n• Add Redis for hot data'},
+      {'heading': 'Data Flow', 'body': 'User → Flutter App → Supabase API → PostgreSQL DB\n\nReal-time: Supabase Realtime WebSockets\nCaching: Local Hive cache for offline support\nCDN: Supabase Storage for media files'},
+      {'heading': 'Scalability Plan', 'body': 'Phase 1 (0 to 1K users):\n• Supabase free/pro tier\n• Single region deployment\n\nPhase 2 (1K+ users):\n• Supabase Pro + connection pooling\n• Add Redis for hot data'},
     ]),
   _Doc(title: 'Architecture', subtitle: 'Technical Structure', emoji: '⚙️', filename: 'Architecture', color: Color(0xFFFF6B6B),
     sections: ['📁 Folder Structure', '🧩 Design Patterns', '🔗 Dependencies', '🧪 Testing'],
@@ -82,7 +96,7 @@ const List<_Tool> _allTools = [
   _Tool(name: 'Cursor AI', url: 'https://cursor.com', emoji: '⌨️', desc: 'AI-first code editor for fast shipping', category: 'Build', isHot: true),
   _Tool(name: 'Framer AI', url: 'https://framer.com', emoji: '🖌️', desc: 'AI web design to production site', category: 'Build', isHot: true),
   _Tool(name: 'Supabase', url: 'https://supabase.com', emoji: '🗄️', desc: 'Open-source Firebase alternative', category: 'Build', isHot: true),
-  _Tool(name: 'Tome AI', url: 'https://tome.app', emoji: '📊', desc: 'AI pitch deck builder for investors', category: 'Grow', isHot: true),
+  _Tool(name: 'Gamma AI', url: 'https://gamma.app', emoji: '📊', desc: 'AI pitch deck and docs builder for founders', category: 'Grow', isHot: true),
   _Tool(name: 'Apollo.io', url: 'https://apollo.io', emoji: '🎯', desc: 'AI sales intelligence & prospecting', category: 'Grow', isHot: true),
   _Tool(name: 'Instantly AI', url: 'https://instantly.ai', emoji: '📧', desc: 'AI cold email at scale', category: 'Grow', isHot: true),
   _Tool(name: 'Causal AI', url: 'https://causal.app', emoji: '📉', desc: 'Financial modeling & scenario planning', category: 'Finance', isHot: true),
@@ -90,6 +104,7 @@ const List<_Tool> _allTools = [
 
 const List<String> _purposes = ['📱 Mobile App', '🌐 Web / SaaS', '🛒 E-Commerce', '🤖 AI Product', '🏢 Enterprise', '🎮 Game', '📚 EdTech', '🏥 HealthTech'];
 
+// ── PDF Generator (unchanged) ─────────────────────────────────
 class _PdfGen {
   static PdfColor _pc(Color c) => PdfColor(c.r / 255, c.g / 255, c.b / 255);
   static pw.Widget _section(String heading, String body, Color color) => pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
@@ -126,377 +141,662 @@ class _PdfGen {
   }
 }
 
+// ── Main Screen ───────────────────────────────────────────────
 class StartupKitScreen extends StatefulWidget {
   const StartupKitScreen({super.key});
   @override State<StartupKitScreen> createState() => _StartupKitScreenState();
 }
 
 class _StartupKitScreenState extends State<StartupKitScreen> with TickerProviderStateMixin {
-  late AnimationController _heroCtrl, _floatCtrl, _pulseCtrl, _entryCtrl;
-  bool _isDownloading = false, _isUnlocked = false;
+  late AnimationController _floatCtrl;
+  late AnimationController _enterCtrl;
+  late Animation<double> _floatAnim;
+  late Animation<double> _enterAnim;
 
   @override
   void initState() {
     super.initState();
-    _heroCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
     _floatCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: true);
-    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
-    _entryCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..forward();
-    _checkOwnerAccess();
-  }
-
-  void _checkOwnerAccess() {
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user?.email?.contains('amanaks') ?? false) setState(() => _isUnlocked = true);
-    } catch (_) {}
+    _floatAnim = Tween<double>(begin: -6, end: 6).animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
+    _enterCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..forward();
+    _enterAnim = CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOut);
+    context.read<PremiumBloc>().add(PremiumInitialized());
   }
 
   @override
   void dispose() {
-    _heroCtrl.dispose(); _floatCtrl.dispose(); _pulseCtrl.dispose(); _entryCtrl.dispose();
+    _floatCtrl.dispose();
+    _enterCtrl.dispose();
     super.dispose();
   }
 
   void _showDownloadSheet({_Doc? single}) {
-    HapticFeedback.selectionClick(); String? selected;
-    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (_) => StatefulBuilder(builder: (ctx, setS) => Container(
-      decoration: const BoxDecoration(color: Color(0xFF0D1420), borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 40),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text('🚀 Choose Your Niche', style: TextStyle(fontFamily: 'Syne', fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
-        const SizedBox(height: 20),
-        Wrap(spacing: 8, runSpacing: 8, children: _purposes.map((p) => ChoiceChip(label: Text(p), selected: selected == p, onSelected: (v) => setS(() => selected = p))).toList()),
-        const SizedBox(height: 24),
-        SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: selected == null ? null : () async {
-          Navigator.pop(context); setState(() => _isDownloading = true);
-          final path = await _PdfGen.generateDoc(single ?? _docs[0], selected!);
-          setState(() => _isDownloading = false);
-          OpenFilex.open(path);
-        }, child: const Text('Download PDF'))),
-      ]),
-    )));
+    HapticFeedback.selectionClick();
+    String? selected;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => StatefulBuilder(builder: (ctx, setS) => Container(
+        decoration: const BoxDecoration(color: _kCard, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 40),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 36, height: 4, decoration: BoxDecoration(color: _kCardBd, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 18),
+          const Text('🚀 Choose Your Niche', style: TextStyle(fontFamily: 'Syne', fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+          const SizedBox(height: 20),
+          Wrap(spacing: 8, runSpacing: 8, children: _purposes.map((p) => ChoiceChip(
+            label: Text(p, style: TextStyle(color: selected == p ? Colors.white : _kTextMid, fontSize: 12)),
+            selected: selected == p,
+            onSelected: (v) => setS(() => selected = p),
+            backgroundColor: _kCard,
+            selectedColor: _kPurple,
+            side: BorderSide(color: selected == p ? _kPurple : _kCardBd),
+          )).toList()),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity, height: 52,
+            child: ElevatedButton(
+              onPressed: selected == null ? null : () async {
+                Navigator.pop(context);
+                final path = await _PdfGen.generateDoc(single ?? _docs[0], selected!);
+                OpenFilex.open(path);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kPurple,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text('Download PDF', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+            ),
+          ),
+        ]),
+      )),
+    );
+  }
+
+  void _startProPurchase() {
+    HapticFeedback.heavyImpact();
+    context.read<PremiumBloc>().add(PremiumPurchaseStarted(SynapPlans.pro6Month));
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF030712),
-    body: CustomScrollView(slivers: [
-      SliverAppBar(
-        expandedHeight: 320, pinned: true, 
-        backgroundColor: const Color(0xFF030712),
-        flexibleSpace: FlexibleSpaceBar(
-          background: _Hero(
-            heroCtrl: _heroCtrl, 
-            onPro: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProKitScreen())), 
-            isUnlocked: _isUnlocked
+  Widget build(BuildContext context) => BlocBuilder<PremiumBloc, PremiumState>(
+    builder: (context, state) {
+      final isUnlocked = state.isPremium;
+      return Scaffold(
+        backgroundColor: _kBgBot,
+        body: FadeTransition(
+          opacity: _enterAnim,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(child: _buildHero(isUnlocked)),
+              SliverToBoxAdapter(child: _buildCTA(isUnlocked)),
+              SliverToBoxAdapter(child: _buildBundleSection(isUnlocked)),
+              SliverToBoxAdapter(child: _buildDivider()),
+              SliverToBoxAdapter(child: _buildSectionHeader('🚀  Free Starter Kit', 'Essential docs to build your MVP')),
+              SliverToBoxAdapter(child: _buildStarterGrid(isUnlocked)),
+              SliverToBoxAdapter(child: _buildSectionHeader('🔧  Essential Tools', 'Curated list for early stages')),
+              SliverToBoxAdapter(child: _buildToolsList(isUnlocked)),
+              const SliverToBoxAdapter(child: SizedBox(height: 60)),
+            ],
           ),
         ),
-      ),
-      SliverPadding(padding: const EdgeInsets.all(20), sliver: SliverList(delegate: SliverChildListDelegate([
-        _StaggeredEntry(index: 0, child: _DualBoosterSection(
-          onEarningLabTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProKitScreen(initialIndex: 1))),
-          onFounderPackTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProKitScreen(initialIndex: 0))),
-          isUnlocked: _isUnlocked,
-        )),
-        const SizedBox(height: 32),
-        const _StaggeredEntry(index: 1, child: _SH(title: '🚀 Free Starter Kit', sub: 'Essential docs to build your MVP')),
-        const SizedBox(height: 16),
-        GridView.count(
-          shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), 
-          crossAxisCount: 2, mainAxisSpacing: 16, crossAxisSpacing: 16, 
-          childAspectRatio: 0.8, // More vertical space for titles
-          children: List.generate(_docs.length, (i) => _StaggeredEntry(index: i + 2, child: _DocCard(doc: _docs[i], onTap: () => _showDownloadSheet(single: _docs[i])))),
-        ),
-        const SizedBox(height: 40),
-        const _StaggeredEntry(index: 6, child: _SH(title: '🛠️ Essential Tools', sub: 'Curated list for early stages')),
-        const SizedBox(height: 16),
-        ...List.generate(_allTools.length, (i) => _StaggeredEntry(index: i + 7, child: _ToolTile(tool: _allTools[i]))),
-        const SizedBox(height: 100),
-      ]))),
-    ]),
+      );
+    },
   );
-}
 
-class _Hero extends StatelessWidget {
-  final AnimationController heroCtrl; final VoidCallback onPro; final bool isUnlocked;
-  const _Hero({required this.heroCtrl, required this.onPro, required this.isUnlocked});
-  @override
-  Widget build(BuildContext context) => Container(
+  // ── HERO ─────────────────────────────────────────────────
+  Widget _buildHero(bool isUnlocked) => Container(
+    height: 500,
     decoration: const BoxDecoration(
       gradient: LinearGradient(
-        begin: Alignment.topCenter, end: Alignment.bottomCenter,
-        colors: [Color(0xFF0F172A), Color(0xFF030712)],
+        colors: [_kBgTop, _kBgMid, _kBgBot],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        stops: [0.0, 0.6, 1.0],
       ),
     ),
-    child: Stack(fit: StackFit.expand, children: [
-      _GlobeBackground(heroCtrl: heroCtrl),
-      Positioned.fill(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center, radius: 1.2,
-              colors: [Colors.transparent, const Color(0xFF030712).withOpacity(0.8), const Color(0xFF030712)],
+    child: Stack(clipBehavior: Clip.none, children: [
+      // Glow blobs
+      Positioned(top: -40, right: -40, child: _glowBlob(200, _kPurple, 0.25)),
+      Positioned(top: 100, left: -60, child: _glowBlob(160, _kCyan, 0.10)),
+      Positioned(bottom: 50, right: 30, child: _glowBlob(120, _kGold, 0.08)),
+
+      // Top text (logo badge + heading + subtitle)
+      Positioned(
+        top: MediaQuery.of(context).padding.top + 16,
+        left: 24, right: 24,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              color: _kPurple.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _kPurple.withValues(alpha: 0.4)),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: const [
+              Icon(Icons.rocket_launch_rounded, color: _kPurpleL, size: 13),
+              SizedBox(width: 6),
+              Text('STARTUP HUB', style: TextStyle(color: _kPurpleL, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.4)),
+            ]),
+          ),
+          const SizedBox(height: 14),
+          const Text('Smart, Simple\nLaunch Anytime.', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white, height: 1.2, letterSpacing: -0.5)),
+          const SizedBox(height: 8),
+          const Text('Everything you need to build,\nlaunch & grow your startup.',style: TextStyle(color: _kTextMid, fontSize: 13, height: 1.5)),
+        ]),
+      ),
+
+      // Phone + floating cards
+      Positioned(
+        bottom: 0, left: 0, right: 0,
+        child: _buildPhoneMockup(isUnlocked),
+      ),
+    ]),
+  );
+
+  Widget _glowBlob(double size, Color color, double opacity) => Container(
+    width: size, height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: RadialGradient(colors: [color.withValues(alpha: opacity), Colors.transparent]),
+    ),
+  );
+
+  // ── PHONE MOCKUP + FLOATING CARDS ────────────────────────
+  Widget _buildPhoneMockup(bool isUnlocked) => SizedBox(
+    height: 280,
+    child: AnimatedBuilder(
+      animation: _floatAnim,
+      builder: (_, __) => Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Phone frame (center)
+          Transform.translate(
+            offset: Offset(0, _floatAnim.value * 0.3),
+            child: _phoneFrame(isUnlocked),
+          ),
+          // Card 1 — Earning Lab (top-left)
+          Positioned(left: 12, top: 10,
+            child: Transform.translate(
+              offset: Offset(-6, _floatAnim.value * 0.9),
+              child: Transform.rotate(angle: -0.18,
+                child: _floatingCard(icon: '🛠️', title: 'Earning Lab', subtitle: '50+ Pro AI Tools', color: _kPurple)),
             ),
           ),
-        ),
+          // Card 2 — Founder Pack (top-right)
+          Positioned(right: 12, top: 5,
+            child: Transform.translate(
+              offset: Offset(8, _floatAnim.value * 1.1),
+              child: Transform.rotate(angle: 0.15,
+                child: _floatingCard(icon: '🚀', title: 'Founder Pack', subtitle: '₹1L in 48 Hours', color: const Color(0xFF0D6EFD))),
+            ),
+          ),
+          // Card 3 — Free kit (bottom-left, small)
+          Positioned(left: 20, bottom: 20,
+            child: Transform.translate(
+              offset: Offset(-4, _floatAnim.value * 0.7),
+              child: Transform.rotate(angle: -0.10,
+                child: _floatingCard(icon: '🎯', title: 'Free Kit', subtitle: 'PRD & Docs', color: _kGreen, isSmall: true)),
+            ),
+          ),
+          // Card 4 — Bundle (bottom-right, small)
+          Positioned(right: 18, bottom: 28,
+            child: Transform.translate(
+              offset: Offset(6, _floatAnim.value * 0.8),
+              child: Transform.rotate(angle: 0.12,
+                child: _floatingCard(icon: '💰', title: isUnlocked ? 'Pro Active' : 'Buy Synap Pro', subtitle: isUnlocked ? 'Unlocked' : '₹19 Access', color: _kGold, isSmall: true)),
+            ),
+          ),
+        ],
       ),
-      SafeArea(child: Padding(padding: const EdgeInsets.all(24), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('STARTUP\nRESOURCE HUB', style: TextStyle(fontFamily: 'Syne', fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white, height: 1, letterSpacing: -1)),
-        const SizedBox(height: 8),
-        Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFF6C63FF), borderRadius: BorderRadius.circular(2))),
-        const Spacer(),
-        SynapMovingBorderButton(onTap: onPro, borderRadius: 16, backgroundColor: const Color(0xFF6C63FF), glowColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), child: Center(child: Text(isUnlocked ? 'ACCESS FOUNDER PACK ✅' : 'GET FOUNDER PACK (₹9)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5)))),
-      ]))),
-    ]),
+    ),
   );
-}
 
-class _GlobeBackground extends StatefulWidget {
-  final AnimationController heroCtrl;
-  const _GlobeBackground({required this.heroCtrl});
-  @override
-  State<_GlobeBackground> createState() => _GlobeBackgroundState();
-}
-
-class _GlobeBackgroundState extends State<_GlobeBackground> {
-  final List<_Star> _stars = List.generate(50, (_) => _Star());
-  
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: widget.heroCtrl,
-    builder: (_, __) => CustomPaint(painter: _GlobePainter(widget.heroCtrl.value, _stars)),
-  );
-}
-
-class _Star {
-  final double x = math.Random().nextDouble();
-  final double y = math.Random().nextDouble();
-  final double size = math.Random().nextDouble() * 2;
-  final double speed = 0.1 + math.Random().nextDouble() * 0.2;
-}
-
-class _DualBoosterSection extends StatelessWidget {
-  final VoidCallback onEarningLabTap, onFounderPackTap; final bool isUnlocked;
-  const _DualBoosterSection({required this.onEarningLabTap, required this.onFounderPackTap, required this.isUnlocked});
-  @override
-  Widget build(BuildContext context) => Column(children: [
-    Stack(alignment: Alignment.center, children: [
-      Positioned(top: 60, bottom: 60, child: Container(width: 2, color: const Color(0xFF6C63FF).withOpacity(0.3))), // Connecting Line
-      Column(children: [
-        _MiniCard(onTap: onEarningLabTap, title: 'Earning Lab', desc: '50+ Pro AI Tools Arsenal', icon: '🛠️', color: const Color(0xFF1E1B4B), isUnlocked: isUnlocked),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(color: Color(0xFF6C63FF), shape: BoxShape.circle),
-          child: const Icon(Icons.link, color: Colors.white, size: 20),
-        ),
-        _MiniCard(onTap: onFounderPackTap, title: 'Founder Pack', desc: 'Earn ₹1L in 48 Hours Roadmap', icon: '🚀', color: const Color(0xFF1E1B4B), isUnlocked: isUnlocked),
-      ]),
-      Positioned(right: 10, child: _BundleBadge(isUnlocked: isUnlocked)),
-    ]),
-    const SizedBox(height: 16),
-    Text(isUnlocked ? 'ALL-IN-ONE MASTERMIND UNLOCKED ✅' : 'GET BOTH FOR JUST ₹9', style: const TextStyle(color: Color(0xFF00D4AA), fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)),
-  ]);
-}
-
-class _MiniCard extends StatelessWidget {
-  final String title, desc, icon; final Color color; final bool isUnlocked; final VoidCallback onTap;
-  const _MiniCard({required this.title, required this.desc, required this.icon, required this.color, required this.isUnlocked, required this.onTap});
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
+  Widget _phoneFrame(bool isUnlocked) => Container(
+    width: 130, height: 230,
+    decoration: BoxDecoration(
+      color: _kCard.withValues(alpha: 0.8),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: _kPurple.withValues(alpha: 0.3), width: 1.5),
+      boxShadow: [
+        BoxShadow(color: _kPurple.withValues(alpha: 0.15), blurRadius: 40, spreadRadius: 0),
+        BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 10)),
+      ],
+    ),
     child: ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: isUnlocked ? const Color(0xFF00D4AA).withOpacity(0.3) : Colors.white.withOpacity(0.08)),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 10))],
+        child: Column(children: [
+          const SizedBox(height: 10),
+          Container(width: 40, height: 6, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(3))),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(children: [
+              _miniRow('🛠️', 'Earning Lab'),
+              const SizedBox(height: 8),
+              _miniRow('🚀', 'Founder Pack'),
+              const SizedBox(height: 8),
+              _miniRow('🎯', 'Free Kit'),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity, height: 28,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [_kPurple, _kPurpleL]),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [BoxShadow(color: _kPurple.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                ),
+                child: Center(child: Text(isUnlocked ? 'Startup Kit Ready' : 'Buy Synap Pro',
+                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700))),
+              ),
+            ]),
           ),
-          child: Row(children: [
-            Container(width: 56, height: 56, decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white.withOpacity(0.1))), child: Center(child: Text(icon, style: const TextStyle(fontSize: 28)))),
-            const SizedBox(width: 20),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: const TextStyle(fontFamily: 'Syne', fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5)),
-              const SizedBox(height: 2),
-              Text(desc, style: const TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w500)),
-            ])),
-          ]),
-        ),
+        ]),
       ),
     ),
   );
-}
 
-class _BundleBadge extends StatelessWidget {
-  final bool isUnlocked;
-  const _BundleBadge({required this.isUnlocked});
-  @override
-  Widget build(BuildContext context) => Transform.rotate(
-    angle: 0.2,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: const Color(0xFF00D4AA), borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black54, blurRadius: 10)]),
-      child: Column(children: [
-        const Text('BUNDLE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10)),
-        Text(isUnlocked ? 'FREE' : '₹9', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
-      ]),
-    ),
-  );
-}
+  Widget _miniRow(String emoji, String label) => Row(children: [
+    Text(emoji, style: const TextStyle(fontSize: 10)),
+    const SizedBox(width: 6),
+    Expanded(child: Container(height: 6, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(3)))),
+    const SizedBox(width: 4),
+    Container(width: 15, height: 6, decoration: BoxDecoration(color: _kPurple.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(3))),
+  ]);
 
-class _ToolTile extends StatelessWidget {
-  final _Tool tool;
-  const _ToolTile({required this.tool});
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.03),
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: Colors.white.withOpacity(0.05)),
-    ),
-    child: ListTile(
-      onTap: () => launchUrl(Uri.parse(tool.url)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: Container(width: 48, height: 48, decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: Center(child: Text(tool.emoji, style: const TextStyle(fontSize: 22)))),
-      title: Text(tool.name, style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 15)),
-      subtitle: Text(tool.desc, style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white10, size: 14),
-    ),
-  );
-}
-
-class _DocCard extends StatelessWidget {
-  final _Doc doc; final VoidCallback onTap;
-  const _DocCard({required this.doc, required this.onTap});
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: ClipRRect(
+  Widget _floatingCard({required String icon, required String title, required String subtitle, required Color color, bool isSmall = false}) {
+    final w = isSmall ? 115.0 : 135.0;
+    return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          width: w,
+          padding: EdgeInsets.all(isSmall ? 12 : 14),
           decoration: BoxDecoration(
-            color: doc.color.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: doc.color.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
             gradient: LinearGradient(
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [doc.color.withOpacity(0.15), Colors.transparent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white.withValues(alpha: 0.12), Colors.white.withValues(alpha: 0.02)],
             ),
+            boxShadow: [
+              BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8)),
+            ],
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(width: 36, height: 36, decoration: BoxDecoration(color: doc.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Center(child: Text(doc.emoji, style: const TextStyle(fontSize: 20)))),
-            const Spacer(),
-            Text(doc.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontFamily: 'Syne', fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white, letterSpacing: -0.5)),
+            Row(children: [
+              Container(
+                width: isSmall ? 30 : 34, height: isSmall ? 30 : 34,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                ),
+                child: Center(child: Text(icon, style: TextStyle(fontSize: isSmall ? 14 : 16))),
+              ),
+              const Spacer(),
+              Container(
+                width: 6, height: 6,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: color, blurRadius: 6)],
+                ),
+              ),
+            ]),
+            SizedBox(height: isSmall ? 8 : 10),
+            Text(title, style: TextStyle(color: Colors.white, fontSize: isSmall ? 11 : 12, fontWeight: FontWeight.w800, letterSpacing: -0.2)),
             const SizedBox(height: 2),
-            Text(doc.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w600)),
+            Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: isSmall ? 9 : 10, fontWeight: FontWeight.w500)),
           ]),
         ),
       ),
-    ),
-  );
-}
-
-class _SH extends StatelessWidget {
-  final String title, sub;
-  const _SH({required this.title, required this.sub});
-  @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontFamily: 'Syne', fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)), Text(sub, style: const TextStyle(fontSize: 12, color: Colors.white38))]);
-}
-
-class _StaggeredEntry extends StatelessWidget {
-  final int index; final Widget child;
-  const _StaggeredEntry({required this.index, required this.child});
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 600 + (index * 100)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) => Opacity(
-        opacity: value,
-        child: Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: child,
-        ),
-      ),
-      child: child,
     );
   }
-}
 
-class _GlobePainter extends CustomPainter {
-  final double t;
-  final List<_Star> stars;
-  _GlobePainter(this.t, this.stars);
+  // ── CTA BUTTON ───────────────────────────────────────────
+  Widget _buildCTA(bool isUnlocked) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+    child: Column(children: [
+      SynapMovingBorderButton(
+        onTap: isUnlocked
+            ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProKitScreen()))
+            : _startProPurchase,
+        borderRadius: 20,
+        backgroundColor: _kPurple,
+        glowColor: _kPurpleL,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            isUnlocked ? 'ACCESS STARTUP KIT ✅' : 'BUY SYNAP PRO',
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+          ),
+          if (!isUnlocked) ...[
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2), 
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+              ),
+              child: const Text('₹19', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900)),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+          ],
+        ]),
+      ),
+      const SizedBox(height: 12),
+      Text('Unlock Startup Kit with Synap Pro (₹19)', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, fontWeight: FontWeight.w600)),
+    ]),
+  );
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.5, size.height * 0.5);
-    final radius = size.width * 0.45;
-    
-    // 1. Paint Starfield (3D World environment)
-    final starPaint = Paint()..color = Colors.white;
-    for (var star in stars) {
-      final dx = (star.x + t * star.speed) % 1.0;
-      final offset = Offset(size.width * dx, size.height * star.y);
-      starPaint.color = Colors.white.withOpacity(0.2 + 0.3 * math.sin(t * 5 + star.x * 10));
-      canvas.drawCircle(offset, star.size, starPaint);
-    }
+  // ── BUNDLE CARDS SECTION ──────────────────────────────────
+  Widget _buildBundleSection(bool isUnlocked) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 36, 24, 0),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Text('📦  What\'s Inside', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+        const Spacer(),
+        Text('PRO BUNDLE', style: TextStyle(color: _kPurpleL.withValues(alpha: 0.8), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+      ]),
+      const SizedBox(height: 20),
+      // Earning Lab card
+      GestureDetector(
+        onTap: isUnlocked
+            ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProKitScreen(initialIndex: 1)))
+            : _startProPurchase,
+        child: _premiumCard(
+          icon: '🛠️', title: 'Earning Lab', subtitle: '50+ Pro AI Tools Arsenal',
+          tag: 'TOOLS', tagColor: _kGold,
+          desc: 'Curated AI tools for writing, design, code & automation to supercharge your workflow.',
+          features: ['AI Writing', 'SEO Tools', 'Automation'],
+          accentColor: _kGold,
+          isUnlocked: isUnlocked,
+        ),
+      ),
+      const SizedBox(height: 14),
+      // Chain link
+      Center(child: Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          color: _kPurple.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+          border: Border.all(color: _kPurple.withValues(alpha: 0.3), width: 1.5),
+        ),
+        child: const Icon(Icons.add_rounded, color: _kPurpleL, size: 24),
+      )),
+      const SizedBox(height: 14),
+      // Founder Pack card
+      GestureDetector(
+        onTap: isUnlocked
+            ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProKitScreen(initialIndex: 0)))
+            : _startProPurchase,
+        child: _premiumCard(
+          icon: '🚀', title: 'Founder Pack', subtitle: 'Earn ₹1L in 48 Hours Roadmap',
+          tag: 'ROADMAP', tagColor: _kGreen,
+          desc: 'Tested step-by-step guide to launch fast, acquire users and earn your first ₹1 Lakh.',
+          features: ['48hr Plan', 'Revenue Tips', 'Launch Kit'],
+          accentColor: _kGreen,
+          isUnlocked: isUnlocked,
+        ),
+      ),
+      const SizedBox(height: 20),
+      // Bundle strip
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            isUnlocked ? '✨  ALL-IN-ONE MASTERMIND UNLOCKED ✅' : '✨  BUY SYNAP PRO TO UNLOCK',
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          ),
+          if (!isUnlocked) ...[
+            const SizedBox(width: 8),
+            const Text('₹19', style: TextStyle(color: _kGreen, fontSize: 20, fontWeight: FontWeight.w900, shadows: [Shadow(color: _kGreen, blurRadius: 8)])),
+          ],
+        ]),
+      ),
+    ]),
+  );
 
-    final paint = Paint()..strokeWidth = 0.5..style = PaintingStyle.stroke;
-    
-    // Rotation based on animation controller value
-    final rotation = t * 2 * math.pi;
+  Widget _premiumCard({
+    required String icon, required String title, required String subtitle,
+    required String tag, required Color tagColor, required String desc,
+    required List<String> features, required Color accentColor, required bool isUnlocked,
+  }) => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: _kCard.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: isUnlocked ? _kGreen.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08)),
+      boxShadow: [
+        BoxShadow(color: accentColor.withValues(alpha: 0.05), blurRadius: 30, offset: const Offset(0, 10)),
+      ],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Container(
+          width: 56, height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [accentColor.withValues(alpha: 0.25), accentColor.withValues(alpha: 0.05)],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: accentColor.withValues(alpha: 0.2)),
+          ),
+          child: Center(child: Text(icon, style: const TextStyle(fontSize: 28))),
+        ),
+        const SizedBox(width: 16),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Text(title, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900, letterSpacing: -0.2)),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: tagColor.withValues(alpha: 0.12), 
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: tagColor.withValues(alpha: 0.3)),
+              ),
+              child: Text(tag, style: TextStyle(color: tagColor, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+            ),
+          ]),
+          const SizedBox(height: 4),
+          Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, fontWeight: FontWeight.w500)),
+        ])),
+      ]),
+      const SizedBox(height: 16),
+      Text(desc, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14, height: 1.5)),
+      const SizedBox(height: 18),
+      Container(height: 1, color: Colors.white.withValues(alpha: 0.05)),
+      const SizedBox(height: 14),
+      Row(children: features.map((f) => Expanded(child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.2), shape: BoxShape.circle),
+          child: Icon(Icons.check_rounded, color: accentColor, size: 10),
+        ),
+        const SizedBox(width: 8),
+        Flexible(child: Text(f, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w500))),
+      ]))).toList()),
+    ]),
+  );
 
-    // 2. Draw Globe Longitudes
-    for (var i = 0; i < 8; i++) {
-      final angle = rotation + (i * math.pi / 4);
-      final xRadius = radius * math.cos(angle).abs();
-      paint.color = const Color(0xFF6C63FF).withOpacity(0.15 * (math.cos(angle) + 1.2));
-      canvas.drawOval(Rect.fromCenter(center: center, width: xRadius * 2, height: radius * 2), paint);
-    }
+  // ── DIVIDER ──────────────────────────────────────────────
+  Widget _buildDivider() => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+    child: Row(children: [
+      Expanded(child: Container(height: 1, color: Colors.white.withValues(alpha: 0.05))),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Text('FREE RESOURCES', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2)),
+      ),
+      Expanded(child: Container(height: 1, color: Colors.white.withValues(alpha: 0.05))),
+    ]),
+  );
 
-    // 3. Draw Globe Latitudes
-    for (var i = 1; i < 6; i++) {
-      final h = radius * math.sin((i * math.pi / 6) - math.pi / 2);
-      final w = radius * math.cos((i * math.pi / 6) - math.pi / 2);
-      paint.color = Colors.white.withOpacity(0.05);
-      canvas.drawOval(Rect.fromCenter(center: Offset(center.dx, center.dy + h), width: w * 2, height: w * 0.2), paint);
-    }
+  Widget _buildSectionHeader(String title, String sub) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+      const SizedBox(height: 6),
+      Text(sub, style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14, fontWeight: FontWeight.w500)),
+    ]),
+  );
 
-    // 4. Draw Hot Nodes & Floating Particles
-    final nodePaint = Paint()..style = PaintingStyle.fill;
-    for (var i = 0; i < 15; i++) {
-      final phi = i * math.pi / 7.5;
-      final theta = t * math.pi + (i * math.pi / 3.75);
-      
-      final x = radius * math.sin(phi) * math.cos(theta);
-      final y = radius * math.cos(phi);
-      final z = radius * math.sin(phi) * math.sin(theta);
+  // ── FREE STARTER KIT GRID ────────────────────────────────
+  Widget _buildStarterGrid(bool isUnlocked) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 24),
+    child: GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 14, mainAxisSpacing: 14,
+      childAspectRatio: 0.95,
+      children: _docs.asMap().entries.map((e) {
+        final isLocked = !isUnlocked;
+        final accents = [_kPurpleL, _kCyan, _kGold, _kGreen];
+        return GestureDetector(
+          onTap: () {
+            if (isLocked) {
+              _startProPurchase();
+              return;
+            }
+            _showDownloadSheet(single: e.value);
+          },
+          child: _kitTile(e.value.emoji, e.value.title, e.value.subtitle, accents[e.key % accents.length], isLocked),
+        );
+      }).toList(),
+    ),
+  );
 
-      if (z > -20) { // Slightly more depth
-        final opacity = ((z + radius) / (radius * 2)).clamp(0.0, 1.0);
-        nodePaint.color = const Color(0xFF00D4AA).withOpacity(opacity); // Teal nodes for contrast
-        canvas.drawCircle(Offset(center.dx + x, center.dy + y), 2.5, nodePaint);
-        
-        if (z > 0) { // Front glow
-          nodePaint.color = const Color(0xFF6C63FF).withOpacity(opacity * 0.3);
-          canvas.drawCircle(Offset(center.dx + x, center.dy + y), 6, nodePaint);
-        }
-      }
-    }
-  }
+  Widget _kitTile(String emoji, String title, String sub, Color accent, bool isLocked) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.03),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: accent.withValues(alpha: 0.15)),
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Container(
+          width: 48, height: 48,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.1), 
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: accent.withValues(alpha: 0.2)),
+          ),
+          child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
+        ),
+        if (isLocked)
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.2), shape: BoxShape.circle),
+            child: Icon(Icons.lock_rounded, color: Colors.white.withValues(alpha: 0.3), size: 14),
+          ),
+      ]),
+      const Spacer(),
+      Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: -0.2)),
+      const SizedBox(height: 4),
+      Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, height: 1.3, fontWeight: FontWeight.w500)),
+    ]),
+  );
 
-  @override
-  bool shouldRepaint(_GlobePainter old) => old.t != t;
+  // ── ESSENTIAL TOOLS ──────────────────────────────────────
+  Widget _buildToolsList(bool isUnlocked) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 24),
+    child: Column(
+      children: _allTools.asMap().entries.map((e) {
+        final tool = e.value;
+        final isLocked = !isUnlocked;
+
+        return GestureDetector(
+          onTap: () async {
+            if (isLocked) {
+              _startProPurchase();
+              return;
+            }
+            final c = Uri.parse(tool.url);
+            if (await canLaunchUrl(c)) await launchUrl(c);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: _kCard,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _kCardBd),
+            ),
+            child: Row(children: [
+              ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: isLocked ? 4 : 0, sigmaY: isLocked ? 4 : 0),
+                child: Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(12)),
+                  child: Center(child: Text(tool.emoji, style: const TextStyle(fontSize: 20))),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: isLocked ? 4 : 0, sigmaY: isLocked ? 4 : 0),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Flexible(child: Text(tool.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700))),
+                      const SizedBox(width: 6),
+                      if (tool.isHot) _badge('HOT', _kGold),
+                      if (tool.isNew) _badge('NEW', _kGreen),
+                    ]),
+                    const SizedBox(height: 3),
+                    Text(tool.desc, style: const TextStyle(color: _kTextDim, fontSize: 11, fontWeight: FontWeight.w500)),
+                  ]),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (isLocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: _kTextDim.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(20), border: Border.all(color: _kTextDim.withValues(alpha: 0.2))),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                    Icon(Icons.lock_outline_rounded, color: _kTextDim, size: 10),
+                    SizedBox(width: 4),
+                    Text('PRO', style: TextStyle(color: _kTextDim, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+                  ]),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: _kGreen.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(20), border: Border.all(color: _kGreen.withValues(alpha: 0.25))),
+                  child: const Text('FREE', style: TextStyle(color: _kGreen, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+                ),
+            ]),
+          ),
+        );
+      }).toList(),
+    ),
+  );
+
+  Widget _badge(String label, Color color) => Container(
+    margin: const EdgeInsets.only(right: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withValues(alpha: 0.3))),
+    child: Text(label, style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+  );
 }

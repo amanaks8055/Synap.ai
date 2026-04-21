@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'env.dart';
+
 void main() async {
-  const supabaseUrl = 'https://ssemwzmwhlcfmzmrweuw.supabase.co';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZW13em13aGxjZm16bXJ3ZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzkxMTcsImV4cCI6MjA4Nzc1NTExN30.QF9G86V2HxzMrnN37ENQkrY7L_m7LBuxa56tC5MoywA';
+  final supabaseUrl = Env.supabaseUrl;
+  final anonKey = Env.supabaseAnonKey;
   final client = HttpClient();
 
   print('--- Fixing Existing Logos (Domain Cleanup) ---');
@@ -38,46 +40,39 @@ void main() async {
             String domain = parts[1];
             // Remove www.
             String cleanDomain = domain.replaceFirst('www.', '');
-            // Optional: trim protocol if accidentally included
-            cleanDomain = cleanDomain.replaceAll('https://', '').replaceAll('http://', '');
-            
-            final newUrl = 'https://logo.clearbit.com/$cleanDomain';
-            if (newUrl != iconUrl) {
-              final update = Map<String, dynamic>.from(tool);
-              update['icon_url'] = newUrl;
-              updates.add(update);
-            }
+            // Update the icon URL
+            updates.add({
+              'id': tool['id'],
+              'icon_url': 'https://logo.clearbit.com/$cleanDomain',
+            });
           }
         }
       }
 
+      // Send batch updates
       if (updates.isNotEmpty) {
-        final jsonBody = utf8.encode(jsonEncode(updates));
-        final updateReq = await client.postUrl(Uri.parse('$supabaseUrl/rest/v1/ai_tools'));
-        updateReq.headers.set('apikey', anonKey);
-        updateReq.headers.set('Authorization', 'Bearer $anonKey');
-        updateReq.headers.set('Content-Type', 'application/json; charset=utf-8');
-        updateReq.headers.set('Prefer', 'resolution=merge-duplicates');
-        updateReq.contentLength = jsonBody.length;
-        updateReq.add(jsonBody);
-
-        final updateResp = await updateReq.close();
-        if (updateResp.statusCode >= 200 && updateResp.statusCode < 300) {
+        final updateUrl = '$supabaseUrl/rest/v1/ai_tools';
+        final req = await client.putUrl(Uri.parse(updateUrl));
+        req.headers.set('apikey', anonKey);
+        req.headers.set('Authorization', 'Bearer $anonKey');
+        req.headers.set('Content-Type', 'application/json');
+        req.write(jsonEncode(updates));
+        final resp = await req.close();
+        if (resp.statusCode == 200) {
           fixedCount += updates.length;
-          print('Fixed $fixedCount logos...');
+          print('Updated ${updates.length} logos.');
         } else {
-          print('Update FAIL [${updateResp.statusCode}]');
+          print('Failed to update logos. Status: ${resp.statusCode}');
         }
       }
-      
-      offset += batch.length;
-      if (batch.length < limit) hasMore = false;
+
+      offset += limit;
     } catch (e) {
-      print('Error: $e');
+      print('Error processing batch: $e');
       hasMore = false;
     }
   }
 
-  print('\nDONE! Successfully fixed $fixedCount tool logos.');
+  print('--- Logo Fix Complete: $fixedCount logos updated ---');
   client.close();
 }

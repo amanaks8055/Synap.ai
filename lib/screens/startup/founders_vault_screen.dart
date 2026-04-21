@@ -2,11 +2,13 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
+import '../../blocs/premium/premium_bloc.dart';
 import '../../widgets/moving_border_button.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -219,6 +221,10 @@ class _FoundersVaultScreenState extends State<FoundersVaultScreen> with TickerPr
 
   @override
   Widget build(BuildContext context) {
+    final premState = context.watch<PremiumBloc>().state;
+    if (!premState.isProfessional) {
+      return _buildLockedScreen(context);
+    }
     final filtered = _vaultDocs.where((d) => d.category == _selectedCat).toList();
 
     return Scaffold(
@@ -284,6 +290,53 @@ class _FoundersVaultScreenState extends State<FoundersVaultScreen> with TickerPr
       ]),
     );
   }
+
+  Widget _buildLockedScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF060A13),
+      body: Stack(children: [
+        AnimatedBuilder(animation: _bgCtrl, builder: (_, __) => CustomPaint(size: MediaQuery.of(context).size, painter: _VaultBgPainter(_bgCtrl.value))),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
+          ),
+        ),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                width: 80, height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6C63FF).withOpacity(0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF6C63FF).withOpacity(0.3)),
+                ),
+                child: const Icon(Icons.lock_rounded, color: Color(0xFF6C63FF), size: 36),
+              ),
+              const SizedBox(height: 24),
+              const Text("FOUNDER'S VAULT", style: TextStyle(fontFamily: 'Syne', fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white, letterSpacing: 1)),
+              const SizedBox(height: 10),
+              Text('This vault is exclusive to Professional plan members.\nUpgrade to unlock legal docs, pitch decks & more.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14, height: 1.5)),
+              const SizedBox(height: 28),
+              SynapMovingBorderButton(
+                onTap: () => Navigator.pushNamed(context, '/premium'),
+                borderRadius: 16,
+                height: 52,
+                backgroundColor: const Color(0xFF6C63FF),
+                glowColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: const Text('Upgrade to Professional', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+              ),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
 }
 
 class _VaultCard extends StatefulWidget {
@@ -329,6 +382,7 @@ class _VaultCardState extends State<_VaultCard> {
     );
   }
 }
+
 
 class _VaultBgPainter extends CustomPainter {
   final double t;

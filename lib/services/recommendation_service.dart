@@ -65,7 +65,7 @@ class RecommendationService extends ChangeNotifier {
         _interactions.clear();
         _interactions.addAll(decoded.map((e) => UserInteraction.fromJson(e)));
       } catch (e) {
-        debugPrint('Error loading interactions: $e');
+
       }
     }
     final favRaw = prefs.getStringList(_favKey);

@@ -98,6 +98,7 @@ class _SynapMovingBorderButtonState extends State<SynapMovingBorderButton>
                     opacity: widget.isAnimating ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: CustomPaint(
+                      size: Size.infinite,
                       painter: _MovingBorderPainter(
                         progress: _controller,
                         glowColor: widget.glowColor,
@@ -109,40 +110,21 @@ class _SynapMovingBorderButtonState extends State<SynapMovingBorderButton>
                 ),
               ),
 
-              // 2. Inner Content + Glass effect
+              // 2. Inner Content
               Container(
                 width: widget.width,
                 height: widget.height,
-                margin: const EdgeInsets.all(0.5),
+                margin: EdgeInsets.all(widget.borderWidth),
+                padding: widget.padding,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(widget.borderRadius - 1),
-                  color: widget.backgroundColor.withOpacity(0.8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(widget.borderRadius - 1),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      padding: widget.padding,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(widget.borderRadius - 1),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.05),
-                          width: 0.5,
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.05),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                      child: Center(child: widget.child),
-                    ),
+                  color: widget.backgroundColor,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.05),
+                    width: 0.5,
                   ),
                 ),
+                child: Center(child: widget.child),
               ),
             ],
           ),
@@ -167,62 +149,54 @@ class _MovingBorderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+
     final rect = Offset.zero & size;
     final rRect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
-    final path = Path()..addRRect(rRect);
 
-    final metricsList = path.computeMetrics().toList();
-    if (metricsList.isEmpty) return;
-    final metrics = metricsList.first;
-    final totalLength = metrics.length;
-    if (totalLength <= 0) return;
-
-    final currentPos = (progress.value * totalLength).clamp(0.0, totalLength);
-
-    // We draw a small trailing glow
-    final glowLength = totalLength * 0.2; // 20% of the path is glowing
-    
-    Path extract;
-    if (currentPos + glowLength <= totalLength) {
-      extract = metrics.extractPath(currentPos, currentPos + glowLength);
-    } else {
-      // Handle the wrapping around the end of path
-      extract = metrics.extractPath(currentPos, totalLength);
-      extract.addPath(metrics.extractPath(0, (currentPos + glowLength) % totalLength), Offset.zero);
-    }
-
-    final tangent = metrics.getTangentForOffset(currentPos);
-    if (tangent == null) return;
+    // The glowing tail is drawn as a SweepGradient
+    final sweepGradient = SweepGradient(
+      colors: [
+        Colors.transparent,
+        glowColor.withOpacity(0.5),
+        glowColor,
+        Colors.white, // Head of the glow
+        Colors.transparent,
+      ],
+      stops: const [0.0, 0.2, 0.45, 0.5, 0.51],
+      transform: GradientRotation(progress.value * 2 * 3.141592653589793),
+    );
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth * 4
+      ..strokeWidth = borderWidth * 2.5
       ..strokeCap = StrokeCap.round
-      ..shader = RadialGradient(
-        colors: [
-          glowColor,
-          glowColor.withOpacity(0.5),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.4, 1.0],
-      ).createShader(
-        Rect.fromCircle(
-          center: tangent.position,
-          radius: glowLength / 2,
-        ),
-      )
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
+      ..shader = sweepGradient.createShader(rect);
 
-    canvas.drawPath(extract, paint);
+    // Draw the main glowing border
+    canvas.drawRRect(rRect, paint);
     
-    // Core highlight
+    // Draw an inner solid crisp head
+    final headGradient = SweepGradient(
+      colors: [
+        Colors.transparent,
+        Colors.transparent,
+        Colors.white.withOpacity(0.6),
+        Colors.white,
+        Colors.transparent,
+      ],
+      stops: const [0.0, 0.45, 0.49, 0.5, 0.505],
+      transform: GradientRotation(progress.value * 2 * 3.141592653589793),
+    );
+    
     final corePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withOpacity(0.8);
-    
-    canvas.drawPath(extract, corePaint);
+      ..shader = headGradient.createShader(rect);
+      
+    canvas.drawRRect(rRect, corePaint);
   }
 
   @override

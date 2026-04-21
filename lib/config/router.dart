@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../screens/auth/auth_screen.dart';
-import '../screens/splash_screen.dart';
 import '../screens/premium_screen.dart';
 import '../screens/voice_hub_screen.dart';
 import '../screens/tracker/free_tier_tracker_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/ai_news_screen.dart';
+import '../screens/news_feed_screen.dart';
+import '../screens/publisher_profile_screen.dart';
 import '../models/tool_model.dart';
 import '../screens/tool_detail_screen.dart';
 import '../screens/main_navigation.dart';
@@ -81,6 +83,24 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (_) => const ProfileScreen(),
+        );
+
+      case '/news':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const AiNewsScreen(),
+        );
+
+      case '/news-feed':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const NewsFeedScreen(),
+        );
+
+      case '/publisher-profile':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const PublisherProfileScreen(),
         );
 
       default:
