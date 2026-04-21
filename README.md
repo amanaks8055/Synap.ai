@@ -2,79 +2,209 @@
 
 <div align="center">
 
+### 🛸 SYNAP
+
 ![Synap Logo](https://img.shields.io/badge/Synap-AI%20Discovery-00C8E8?style=for-the-badge&logo=flutter&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Closed%20Beta-orange?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-blue?style=for-the-badge)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?style=for-the-badge&logo=supabase)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-412991?style=for-the-badge&logo=openai)
 
-**Discover. Explore. Master. 1200+ AI Tools at Your Fingertips**
+**✨ Discover. Explore. Master. 1200+ AI Tools at Your Fingertips ✨**
 
-[🌐 Website](#) • [📱 Play Store](#) • [💬 Discord](#) • [🐦 Twitter](#)
+```
+🎯 AI Discovery Platform | 🎤 Voice-Powered Search | 💬 GPT-4 Chat | 🌙 Dark Void Design
+```
 
+### 🌐 [Live Website](https://synap-muse.lovable.app) • [📱 Play Store](#) • [💬 Discord](#) • [🐦 Twitter](#)
+
+</div>
+
+---
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Made%20With%20Love-❤️-red?style=flat-square" alt="Made with love">
+  <img src="https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square" alt="Open Source">
+  <img src="https://img.shields.io/badge/Community%20Driven-Yes-blue?style=flat-square" alt="Community">
 </div>
 
 ---
 
 ## 🎯 What is Synap?
 
-Synap is a **next-generation AI discovery platform** that transforms how you find and interact with artificial intelligence tools. With an intuitive voice-powered interface, real-time AI chat, and a database of **1200+ curated AI tools**, Synap is your command center in the AI revolution.
+<div align="center">
 
-> **Your Central Hub for AI Exploration**
-> In a world with hundreds of AI tools, Synap helps you navigate ChatGPT, Claude, Gemini, Perplexity, and beyond—with a premium, fluid, and lightning-fast interface.
+```
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║        🛸 Your Personal AI Tools Command Center 🛸       ║
+║                                                           ║
+║    Synap transforms how you find and interact with       ║
+║    artificial intelligence—1200+ curated tools,          ║
+║    voice-powered discovery, and GPT-4 intelligence       ║
+║    all in one premium, lightning-fast platform.          ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+```
 
----
+</div>
 
-## 🌟 Key Features
-
-<table>
-<tr>
-<td width="33%">
-
-### 🔍 Smart Discovery
-- 1200+ AI tools across 30+ categories
-- Advanced filtering & search
-- Smart recommendations based on your needs
-- Real-time tool synchronization
-
-</td>
-<td width="33%">
-
-### 🎤 Voice Hub
-- Speech-to-text with <500ms latency
-- GPT-4 powered AI chat assistant
-- 4 conversation modes (Creator, Developer, Learning, Default)
-- On-device audio processing for privacy
-
-</td>
-<td width="33%">
-
-### 💎 Premium Experience
-- Glassomorphic UI with Aurora effects
-- Real-time Supabase sync
-- Freemium monetization model
-- Offline-first architecture
-
-</td>
-</tr>
-</table>
+> **In a world with 1000+ AI tools**, finding the right one is overwhelming.
+> **Synap solves this.** With an intuitive voice interface, intelligent recommendations, and real-time AI chat powered by GPT-4, Synap is your command center in the AI revolution.
 
 ---
 
-## 📸 App Screenshots
+## ✨ How It Works
 
 <div align="center">
 
-| Home Screen | Voice Hub | Tool Details |
-|:---:|:---:|:---:|
-| ![Home](https://via.placeholder.com/300x600/1a1a2e/00C8E8?text=Home+Screen) | ![Voice](https://via.placeholder.com/300x600/1a1a2e/00C8E8?text=Voice+Hub) | ![Details](https://via.placeholder.com/300x600/1a1a2e/00C8E8?text=Tool+Details) |
-
-| Chat Assistant | Favorites | Categories |
-|:---:|:---:|:---:|
-| ![Chat](https://via.placeholder.com/300x600/1a1a2e/00C8E8?text=AI+Chat) | ![Favorites](https://via.placeholder.com/300x600/1a1a2e/00C8E8?text=Favorites) | ![Categories](https://via.placeholder.com/300x600/1a1a2e/00C8E8?text=Categories) |
-
-*🎨 [View Design System](CLAUDE.md)*
+```
+   Step 1         Step 2         Step 3         Step 4
+   
+    🎤            💭             💬             ✨
+   
+  SPEAK      →   UNDERSTAND   →   EXPLORE   →   DISCOVER
+  
+Your voice    AI processes    Chats with      Find the
+recognition   your query      GPT-4 for       perfect tool
+              in milliseconds recommendations instantly
+```
 
 </div>
+
+## 🌟 Core Features
+
+<div align="center">
+
+### Feature Showcase
+
+```
+╔═══════════════════════════════════════════════════════════════════╗
+║                       SYNAP FEATURES                             ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+  │    🔍 FIND   │      │   🎤 VOICE   │      │   💬 CHAT    │
+  │              │      │              │      │              │
+  │  1200+ Tools │  ➜   │ <500ms STT   │  ➜   │ GPT-4 AI    │
+  │  30 Categories    Voice Assistant    Smart Answers    │
+  │              │      │              │      │              │
+  └──────────────┘      └──────────────┘      └──────────────┘
+        │                    │                       │
+        └────────────────────┴───────────────────────┘
+                     │
+                     ▼
+            ⚡ INSTANT RESULTS ⚡
+            Real-Time Sync
+            Offline Ready
+```
+
+</div>
+
+---
+
+## 🎨 Visual Design & Experience
+
+<div align="center">
+
+### Dark Void Aesthetic | Glassomorphism | Aurora Effects
+
+```
+════════════════════════════════════════════════════════════
+║  🌙 SYNAP'S PREMIUM DARK VOID DESIGN SYSTEM             ║
+════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────┐
+│  🎨 Design Philosophy                                  │
+│  ─────────────────────────────────────────────────────│
+│                                                        │
+│  ✨ Glassomorphic Components                           │
+│     Frosted glass effects with transparency            │
+│                                                        │
+│  🌈 Aurora Gradients                                   │
+│     Dynamic color transitions (#00C8E8 Cyan accent)    │
+│                                                        │
+│  ⚡ Micro-Interactions                                  │
+│     Smooth animations on every interaction             │
+│                                                        │
+│  📱 Responsive Layout                                  │
+│     Optimized for all screen sizes                     │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+</div>
+
+---
+
+## 📱 Experience Synap
+
+<div align="center">
+
+### 🌐 Visit Live Website
+**[🚀 SYNAP LIVE DEMO](https://synap-muse.lovable.app)**
+
+```
+Online    │  Responsive Design  │  Interactive UI  │  Real-time Updates
+Showcase  │  Mobile Optimized   │  Smooth Flows    │  Live API Integration
+```
+
+### App Preview
+
+```
+╔════════════════════════════════════════════════════════════╗
+║                   SYNAP APP SCREENS                       ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📱 Home          📱 Voice Hub      📱 Tool Details       ║
+║  ┌──────────┐     ┌──────────┐      ┌──────────┐         ║
+║  │          │     │   🎤     │      │ ChatGPT  │         ║
+║  │ 1200+    │  →  │          │  →   │          │         ║
+║  │ Tools    │     │ Talk...  │      │ Details  │         ║
+║  │          │     │          │      │          │         ║
+║  └──────────┘     └──────────┘      └──────────┘         ║
+║                                                            ║
+║  📱 AI Chat       📱 Favorites      📱 Categories         ║
+║  ┌──────────┐     ┌──────────┐      ┌──────────┐         ║
+║  │  You:    │     │ ❤️❤️❤️   │      │ Writing  │         ║
+║  │  Hello!  │  →  │ Saved    │  →   │ Coding   │         ║
+║  │          │     │ Tools    │      │ Design   │         ║
+║  │ Synap:  │     │          │      │          │         ║
+║  │  Hi! 👋  │     │          │      │          │         ║
+║  └──────────┘     └──────────┘      └──────────┘         ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+```
+
+</div>
+
+---
+
+## � Performance Metrics
+
+<div align="center">
+
+```
+╔══════════════════════════════════════════════════════════╗
+║           SYNAP PERFORMANCE DASHBOARD                   ║
+╚══════════════════════════════════════════════════════════╝
+
+  LATENCY               DATABASE              SYNC
+    ⚡                    💾                    🔄
+  < 500ms           Real-time Queries     Instant Update
+  Voice-to-Text     PostgreSQL (Supabase)  Across Devices
+  
+  
+  DISCOVERY            AI INTELLIGENCE      UPTIME
+    🔍                    🧠                  ✅
+  1200+ Tools         GPT-4 Powered        99.9% SLA
+  30+ Categories      Context Aware        Global CDN
+```
+
+</div>
+
+---
 
 ---
 
@@ -82,14 +212,50 @@ Synap is a **next-generation AI discovery platform** that transforms how you fin
 
 <div align="center">
 
-| Layer | Technology | Purpose |
-|:---:|:---|:---|
-| **📱 Frontend** | Flutter 3.x | Native iOS & Android apps |
-| **🧠 State Mgmt** | BLoC Pattern | Scalable business logic |
-| **🔐 Backend** | Supabase | Auth, Database, Real-time Sync |
-| **🤖 AI** | OpenAI GPT-4 | Conversational intelligence |
-| **🎙️ Voice** | Native STT/TTS | Device-native speech processing |
-| **🎨 Design** | Dark Void System | Glassomorphic UI with Aurora effects |
+### Modern Architecture Built with Industry-Leading Tools
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  📱 FRONTEND LAYER                                      │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ Flutter 3.x  │  BLoC Pattern  │  Dart SDK     │   │
+│  │ iOS + Android│  State Mgmt    │  Native Perf  │   │
+│  └─────────────────────────────────────────────────┘   │
+│              ⬇️                                         │
+│  🧠 BUSINESS LOGIC LAYER                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ BLoC Events → States → UI  │  Recommendation   │   │
+│  │ Clean Architecture        │  Engine          │   │
+│  └─────────────────────────────────────────────────┘   │
+│              ⬇️                                         │
+│  ☁️ BACKEND & DATA LAYER                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ Supabase      │  PostgreSQL   │  Real-time     │   │
+│  │ Authentication│  Edge Funcs   │  WebSockets    │   │
+│  └─────────────────────────────────────────────────┘   │
+│              ⬇️                                         │
+│  🤖 AI & INTELLIGENCE LAYER                            │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ OpenAI GPT-4    │  Speech API    │  ML Models   │   │
+│  │ Context Window  │  STT/TTS       │  Inference   │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Technology Stack Summary
+
+| Component | Technology | Purpose |
+|:---|:---|:---|
+| **Mobile App** | Flutter 3.x + Dart | Native iOS/Android apps |
+| **State Mgmt** | BLoC Pattern | Clean, scalable business logic |
+| **Backend** | Supabase (PostgreSQL) | Database, Auth, Real-time Sync |
+| **API Layer** | REST + GraphQL | RESTful APIs + GraphQL queries |
+| **AI Engine** | OpenAI GPT-4 | Conversational intelligence |
+| **Voice Tech** | Native STT/TTS | Device-native speech processing |
+| **Real-time** | WebSockets | Live data synchronization |
+| **Design** | Flutter Widgets | Glassomorphism + Animations |
 
 </div>
 
@@ -97,33 +263,53 @@ Synap is a **next-generation AI discovery platform** that transforms how you fin
 
 ## 🚀 Getting Started
 
-### Prerequisites
-```bash
-- Flutter 3.x
-- Dart 3.x
-- Supabase account (free tier works)
-- Android Studio / Xcode
+<div align="center">
+
+### Quick Start Guide
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║  GET SYNAP RUNNING IN 5 MINUTES                          ║
+╚═══════════════════════════════════════════════════════════╝
+
+  1️⃣ CLONE          2️⃣ SETUP          3️⃣ CONFIGURE      4️⃣ RUN
+  
+  $ git clone    $ flutter pub    $ cp .env.      $ flutter
+    Synap.ai       get             example .env      run
+    
 ```
 
-### Installation
+</div>
+
+### Prerequisites
+```bash
+✓ Flutter 3.x or higher
+✓ Dart 3.x or higher
+✓ Supabase account (free tier available)
+✓ Android Studio / Xcode
+✓ Git
+```
+
+### Installation Steps
 
 ```bash
-# Clone the repository
+# Step 1: Clone the repository
 git clone https://github.com/amanaks8055/Synap.ai.git
 
-# Navigate to project
+# Step 2: Navigate to project directory
 cd Synap
 
-# Get dependencies
+# Step 3: Install Flutter dependencies
 flutter pub get
 
-# Create .env file (see CLAUDE.md for details)
+# Step 4: Create environment file (see CLAUDE.md)
 cp .env.example .env
+# Edit .env with your Supabase credentials
 
-# Run on Android
+# Step 5: Run on Android
 flutter run -d android
 
-# Run on iOS
+# Step 5: Or run on iOS
 flutter run -d ios
 ```
 
@@ -134,142 +320,281 @@ flutter run -d ios
 <div align="center">
 
 ```
-┌─────────────────────────────────────────┐
-│  SYNAP — AI Discovery Platform          │
-├─────────────────────────────────────────┤
-│  Tools Indexed:      1200+              │
-│  Categories:         30+                │
-│  Languages:          Multiple           │
-│  Voice Latency:      <500ms             │
-│  Cloud Sync:         Real-time          │
-│  Platforms:          iOS + Android      │
-│  Status:             Closed Beta        │
-│  Investment:         ₹2500              │
-└─────────────────────────────────────────┘
+╔═══════════════════════════════════════════════════════════╗
+║  SYNAP BY THE NUMBERS                                   ║
+╚═══════════════════════════════════════════════════════════╝
+
+   🔍 1200+             📱 2 Platforms           ⚡ <500ms
+   AI Tools             iOS & Android            Latency
+   Indexed              Available                Response
+   
+   💬 30+ Categories    🌐 Real-time             🎯 100+
+   Organized            Sync Ready               Features
+   
+   🧠 GPT-4             💾 Supabase              ✨ Premium
+   Powered              Backend                  Design
 ```
 
 </div>
 
 ---
 
-## ✨ Features Breakdown
+## ✨ Complete Features Breakdown
 
 <details open>
-<summary><b>🎯 Core Features (Click to expand)</b></summary>
+<summary><b>🎯 AI Tools Discovery Engine</b></summary>
 
-### 1. AI Tools Discovery Engine
-- Database of 1200+ AI tools
-- Smart categorization (30+ categories)
-- Advanced filters (pricing, features, ratings)
-- Personalized recommendations
-- Real-time data synchronization
+```
+   🔍 DISCOVERY SYSTEM
 
-### 2. Voice-Powered AI Hub
-- Speech-to-Text (STT) with <500ms latency
-- Text-to-Speech (TTS) with voice options
-- Real-time GPT-4 chat integration
-- 4 Conversation Modes:
-  - **Default**: General AI assistant
-  - **Creator**: Content creator optimized
-  - **Developer**: Code-focused Q&A
-  - **Learning**: Educational mode
-- On-device audio processing (privacy-first)
+┌──────────────────────────────────────┐
+│  1200+ AI Tools Database             │
+│  ├─ 30+ Smart Categories             │
+│  ├─ Advanced Filtering                │
+│  ├─ Personalized Recommendations      │
+│  └─ Real-time Synchronization         │
+└──────────────────────────────────────┘
+```
 
-### 3. Smart Tool Recommendations
+- **Database**: 1200+ AI tools with detailed metadata
+- **Categories**: Organized across 30+ industry categories
+- **Filters**: Search by pricing, features, ratings, popularity
+- **Recommendations**: ML-based tool suggestions
+- **Sync**: Real-time updates from Supabase
+
+</details>
+
+<details open>
+<summary><b>🎤 Voice-Powered AI Hub</b></summary>
+
+```
+   🎙️ VOICE SYSTEM
+
+   📢 SPEAK        💭 UNDERSTAND       💬 RESPOND
+   
+   Say something  → <500ms processing → AI answers
+   Natural voice    Context aware      Personalized
+```
+
+- **Speech-to-Text**: <500ms latency, multilingual support
+- **Text-to-Speech**: Multiple voice options, adjustable speed
+- **GPT-4 Integration**: Context-aware AI responses
+- **4 Conversation Modes**: Default, Creator, Developer, Learning
+- **Privacy-First**: On-device audio processing where possible
+
+</details>
+
+<details open>
+<summary><b>💎 Smart Recommendations</b></summary>
+
+```
+   🧠 INTELLIGENCE SYSTEM
+   
+   Your Activity → ML Processing → Best Tool Match
+   ├─ Usage patterns
+   ├─ Favorites
+   └─ Search history
+```
+
 - Usage-based learning
-- Favorite tracking
-- History syncing
+- Favorite tracking & syncing
+- Search history retention
 - Personalized suggestions
-
-### 4. Freemium Monetization
-- **Free Tier**: Basic discovery, 50 AI chat messages/day
-- **Premium**: Unlimited access, advanced features, extended response lengths
+- Cross-tool recommendations
 
 </details>
 
 <details>
-<summary><b>🔐 Backend & Sync (Click to expand)</b></summary>
+<summary><b>💳 Freemium Monetization Model</b></summary>
 
-- **Supabase Integration**: PostgreSQL database with real-time listeners
-- **Authentication**: Email/Password, Google OAuth, Apple Sign-in
-- **Real-time Sync**: Favorites, usage data, preferences
-- **Edge Functions**: Subscription management & AI processing
-- **Rate Limiting**: Per-user request limits with quota management
+```
+   🎯 PRICING TIERS
+
+┌────────────────┬────────────────────────┐
+│  FREE TIER     │  PREMIUM TIER          │
+├────────────────┼────────────────────────┤
+│  ✓ Browse      │  ✓ Unlimited browse    │
+│  ✓ 50 messages │  ✓ Unlimited AI chat   │
+│  ✓ Basic recs  │  ✓ Extended responses  │
+│  ✗ Offline     │  ✓ Offline access      │
+└────────────────┴────────────────────────┘
+```
+
+- Free tier for casual users
+- Premium for power users
+- Stripe integration for payments
+- Usage-based quotas
 
 </details>
 
 <details>
-<summary><b>🎨 UI/UX Design (Click to expand)</b></summary>
+<summary><b>🔐 Backend & Cloud Sync</b></summary>
 
-- **Dark Void Aesthetic**: Premium dark theme with cyan accents
-- **Glassomorphism**: Frosted glass effects on UI components
-- **Aurora Effects**: Gradient backgrounds with animated transitions
-- **Micro-interactions**: Smooth animations for all state changes
-- **Responsive Design**: Optimized for all screen sizes
+```
+   ☁️ BACKEND ARCHITECTURE
+
+   User Actions → Supabase → All Devices
+   
+   ├─ PostgreSQL database
+   ├─ Real-time WebSocket listeners
+   ├─ Edge Functions for processing
+   └─ JWT-based authentication
+```
+
+- Supabase PostgreSQL database
+- Real-time data synchronization
+- OAuth2 authentication (Google, Apple)
+- Edge Functions for custom logic
+- Rate limiting & quota management
+
+</details>
+
+<details>
+<summary><b>🎨 UI/UX & Design System</b></summary>
+
+```
+   🌙 DARK VOID AESTHETIC
+
+   ✨ Glassomorphic    🌈 Aurora        ⚡ Micro-
+      Components        Gradients       interactions
+      
+   Frosted glass      Dynamic colors   Smooth
+   with blur          with transitions  animations
+```
+
+- Dark Void color scheme
+- Glassomorphism UI elements
+- Aurora gradient backgrounds
+- Smooth micro-interactions
+- Responsive design for all screens
 
 </details>
 
 ---
 
-## 📈 Current Status
+## 📈 Development Status
 
-| Phase | Status | Details |
-|:---:|:---:|:---|
-| **Development** | ✅ Complete | All core features implemented |
-| **Testing** | 🟡 In Progress | Closed beta on Play Store |
-| **Beta Users** | 🟡 Growing | Gathering feedback from testers |
-| **Public Launch** | 🟢 Planned | Q2 2026 target |
+<div align="center">
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║  PROJECT TIMELINE & STATUS                               ║
+╚═══════════════════════════════════════════════════════════╝
+
+✅ Development Complete      All core features implemented
+🟡 Closed Beta Testing      Gathering user feedback
+🟡 Play Store Deployment    Beta live with 100+ testers  
+🟢 Public Launch Planned     Q2 2026 target
+```
+
+</div>
+
+| Phase | Status | Timeline | Details |
+|:---|:---:|:---|:---|
+| **MVP Development** | ✅ | Complete | All core features built |
+| **Closed Beta** | 🟡 | In Progress | Testing with selected users |
+| **Play Store** | 🟡 | Live | Closed beta available |
+| **Public Release** | 🟢 | Q2 2026 | Full launch planned |
 
 ---
 
 ## 🤝 Contributing
 
-We love contributions! Here's how you can help:
+<div align="center">
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
+```
+Want to contribute? Here's how:
 
-See [CLAUDE.md](CLAUDE.md) for coding standards and architecture guidelines.
+1️⃣ FORK         2️⃣ BRANCH        3️⃣ CODE          4️⃣ PUSH
+
+github.com/   git checkout -b  Your changes    git push
+you/Synap.ai  feature/amazing              origin/feature
+```
+
+</div>
+
+### Contribution Steps
+
+1. **Fork** the repository on GitHub
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request with description
+
+See [CLAUDE.md](CLAUDE.md) for detailed coding standards and architecture guidelines.
 
 ---
 
-## 📝 Documentation
-
-- **[ALL_FEATURES_ONLY.md](ALL_FEATURES_ONLY.md)** — Complete feature specifications
-- **[CLAUDE.md](CLAUDE.md)** — Development guidelines & architecture
-- **[Design System](#)** — UI/UX specifications
-
----
-
-## 📞 Get in Touch
+## 📚 Documentation
 
 <div align="center">
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-7289DA?style=flat-square&logo=discord)](https://discord.gg/)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat-square&logo=twitter)](https://twitter.com/)
-[![Email](https://img.shields.io/badge/Email-Contact-red?style=flat-square&logo=gmail)](mailto:contact@synap.ai)
+| Document | Purpose |
+|:---|:---|
+| **[ALL_FEATURES_ONLY.md](ALL_FEATURES_ONLY.md)** | 🎯 Complete feature specifications |
+| **[CLAUDE.md](CLAUDE.md)** | 🏗️ Architecture & development guidelines |
+| **[Live Website](https://synap-muse.lovable.app)** | 🌐 Interactive UI showcase |
+| **[GitHub Issues](https://github.com/amanaks8055/Synap.ai/issues)** | 🐛 Bug reports & feature requests |
 
 </div>
 
 ---
 
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-## ❤️ Credits
-
-Built with passion by **Aman Sharma** | [GitHub](https://github.com/amanaks8055) | [Portfolio](#)
+## 📞 Connect With Us
 
 <div align="center">
 
-**Made with ❤️ for the AI Community**
+```
+🌐 Website | 💬 Discord | 🐦 Twitter | 📧 Email
+```
 
-⭐ If you find Synap useful, please consider giving it a star!
+[![Website](https://img.shields.io/badge/Website-synap--muse.lovable.app-00C8E8?style=flat-square&logo=chrome)](https://synap-muse.lovable.app)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-7289DA?style=flat-square&logo=discord)](https://discord.gg/)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow%20@Synap-1DA1F2?style=flat-square&logo=twitter)](https://twitter.com/)
+[![Email](https://img.shields.io/badge/Email-contact%40synap.ai-red?style=flat-square&logo=gmail)](mailto:contact@synap.ai)
+
+</div>
+
+---
+
+## 📄 License & Legal
+
+<div align="center">
+
+**MIT License** — Free to use, modify, and distribute
+
+[View License](LICENSE) • [Privacy Policy](#) • [Terms of Service](#)
+
+</div>
+
+---
+
+## ❤️ Built by Aman Sharma
+
+<div align="center">
+
+```
+╔══════════════════════════════════════════════════════════╗
+║                                                          ║
+║      Made with ❤️ passion for the AI community          ║
+║                                                          ║
+║  GitHub: github.com/amanaks8055                         ║
+║  Portfolio: (coming soon)                                ║
+║  Location: India 🇮🇳                                     ║
+║                                                          ║
+║  If you find Synap useful, please give it a ⭐ star!    ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
+```
+
+</div>
+
+---
+
+<div align="center">
+
+**Synap — Your Command Center for AI Discovery**
+
+*Crafted with precision. Powered by passion. Built for you.* 🚀
 
 </div>
